@@ -1,3 +1,5 @@
+
+import { Link, NavLink } from 'react-router-dom'
 import { siteNavigation } from './navigation'
 
 const mainLinks = siteNavigation.slice(0, 3)
@@ -7,32 +9,31 @@ function Header() {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <a className="site-logo" href="/" aria-label="SER — página inicial">
+        <Link className="site-logo" to="/" aria-label="SER — página inicial">
           SER
-        </a>
+        </Link>
 
         <nav className="main-navigation" aria-label="Navegação principal">
           {mainLinks.map(({ label, href }) => (
-            <a
+            <NavLink
               className="main-navigation__link"
-              href={href}
-              aria-current={href === '/' ? 'page' : undefined}
+              to={href}
               key={href}
             >
               {label}
-            </a>
+            </NavLink>
           ))}
         </nav>
 
         <div className="site-header__actions">
           {accountLinks.map(({ label, href }) => (
-            <a
+            <Link
               className={`site-action ${href === '/entrar' ? 'site-action--primary' : 'site-action--secondary'}`}
-              href={href}
+              to={href}
               key={href}
             >
               {label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
