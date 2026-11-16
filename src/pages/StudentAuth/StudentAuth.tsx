@@ -1,179 +1,73 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './StudentAuth.css'
-
-type AuthMode = 'login' | 'register'
-
-type FormValues = {
-  name: string
-  cpf: string
-  password: string
-}
-
-const initialValues: FormValues = {
-  name: '',
-  cpf: '',
-  password: '',
-}
-
-function formatCpf(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-
-  if (digits.length <= 3) return digits
-  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
-  if (digits.length <= 9) {
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
-  }
-
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
-}
-
-function StudentAuth() {
-  const [mode, setMode] = useState<AuthMode>('login')
-  const [values, setValues] = useState<FormValues>(initialValues)
-  const [error, setError] = useState('')
-
-  const isRegister = mode === 'register'
-
-  function changeMode(nextMode: AuthMode) {
-    setMode(nextMode)
-    setValues(initialValues)
-    setError('')
-  }
-
-  function handleChange(field: keyof FormValues, value: string) {
-    setValues((current) => ({
-      ...current,
-      [field]: field === 'cpf' ? formatCpf(value) : value,
-    }))
-    setError('')
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (isRegister && !values.name.trim()) {
-      setError('Preencha seu nome completo.')
-      return
-    }
-
-    if (!values.cpf.trim() || !values.password.trim()) {
-      setError('Preencha todos os campos obrigatórios.')
-      return
-    }
-
-    if (values.cpf.replace(/\D/g, '').length !== 11) {
-      setError('Informe um CPF válido.')
-      return
-    }
-
-    if (values.password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.')
-      return
-    }
-
-    setError('Esta etapa é apenas visual. A ação ainda não está disponível.')
-  }
-
-  return (
-    <main className="student-auth" aria-labelledby="auth-title">
+type Values = { name: string;
+cpf: string;
+password: string }
+const empty: Values = { name: '', cpf: '', password: '' }
+function formatCpf(value: string) { const d=value.replace(/\D/g,'').slice(0,11);
+return d.length<=3?d:d.length<=6?`${d.slice(0,3)}.${d.slice(3)}`:d.length<=9?`${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`:`${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}` }
+export default function StudentAuth() {
+  const register=useLocation().pathname==='/cadastro';
+  const navigate=useNavigate();
+  const [values,setValues]=useState(empty);
+  const [feedback,setFeedback]=useState('')
+  function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();
+    if(register&&!values.name.trim()){setFeedback('Preencha seu nome completo.');
+    return} if(values.cpf.replace(/\D/g,'').length!==11||!values.password){setFeedback('Informe um CPF com 11 dígitos e sua senha.');
+    return} if(register){setFeedback('Cadastro demonstrativo concluído. Acesse sua conta para continuar.');
+    navigate('/entrar')}else{navigate('/agendar')}}
+    return <main className="student-auth">
       <section className="student-auth__message">
-        <a className="student-auth__logo" href="/" aria-label="SER — página inicial">
-          SER
-        </a>
+        <Link className="student-auth__logo" to="/">SER</Link>
         <div className="student-auth__message-copy">
-          <h1>{isRegister ? 'Um cadastro simples. Um cuidado só seu.' : 'Seu momento, com privacidade.'}</h1>
-          <p>
-            Use seu acesso para escolher horários disponíveis, confirmar sua sessão e acompanhar seus agendamentos em um só lugar.
-          </p>
-        </div>
-      </section>
-
-      <section className="student-auth__panel">
-        <div className="student-auth__form-wrap">
-          <p className="student-auth__eyebrow">Área do aluno</p>
-          <h2 id="auth-title">{isRegister ? 'Crie seu acesso!' : 'Que bom ter você aqui!'}</h2>
-          <p className="student-auth__intro">
-            {isRegister
-              ? 'Cadastre seu CPF e escolha uma senha para acessar os agendamentos com segurança.'
-              : 'Entre com seu CPF e sua senha para agendar ou consultar seus horários.'}
-          </p>
-
-          <form className="student-auth__form" onSubmit={handleSubmit} noValidate>
-            {isRegister && (
-              <div className="student-auth__field">
-                <label htmlFor="name">Nome Completo</label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  value={values.name}
-                  onChange={(event) => handleChange('name', event.target.value)}
-                  required
-                />
-              </div>
-            )}
-
-            <div className="student-auth__field">
-              <label htmlFor="cpf">CPF</label>
-              <input
-                id="cpf"
-                name="cpf"
-                type="text"
-                inputMode="numeric"
-                autoComplete="username"
-                placeholder="000.000.000-00"
-                maxLength={14}
-                value={values.cpf}
-                onChange={(event) => handleChange('cpf', event.target.value)}
-                required
-              />
-            </div>
-
-            <div className="student-auth__field">
-              <label htmlFor="password">Senha</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                value={values.password}
-                onChange={(event) => handleChange('password', event.target.value)}
-                required
-              />
-            </div>
-
-            <p className="student-auth__switch">
-              {isRegister ? 'Já possui uma conta?' : 'Ainda não possui uma conta?'}{' '}
-              <a
-                href="/entrar"
-                onClick={(event) => {
-                  event.preventDefault()
-                  changeMode(isRegister ? 'login' : 'register')
-                }}
-              >
-                {isRegister ? 'Entrar' : 'Criar conta'}
-              </a>
-            </p>
-
-            {error && (
-              <p className="student-auth__feedback" role="status">
-                {error}
-              </p>
-            )}
-
-            <button className="student-auth__submit" type="submit">
-              {isRegister ? 'Criar conta' : 'Entrar'}
-            </button>
-            <a className="student-auth__back" href="/">
-              Voltar
-            </a>
-          </form>
-        </div>
-      </section>
-    </main>
-  )
+          <h1>
+            {register?'Um cadastro simples. Um cuidado só seu.':'Seu momento, com privacidade.'}
+          </h1>
+        <p>Use seu acesso para escolher horários disponíveis, confirmar sua sessão e acompanhar seus agendamentos em um só lugar.</p>
+      </div>
+  </section>
+<section className="student-auth__panel">
+  <div className="student-auth__form-wrap">
+    <p className="student-auth__eyebrow">Área do aluno</p>
+    <h2>
+      {register?'Crie seu acesso!':'Que bom ter você aqui!'}
+    </h2>
+  <p className="student-auth__intro">
+    {register?'Cadastre seu nome, CPF e escolha uma senha para acessar os agendamentos com segurança.':'Entre com seu CPF e sua senha para agendar ou consultar seus horários.'}
+  </p>
+<form className="student-auth__form" onSubmit={submit} noValidate>
+  {register&&<div className="student-auth__field">
+    <label htmlFor="student-name">Nome completo</label>
+    <input id="student-name" autoComplete="name" value={values.name} onChange={e=>setValues({...values,name:e.target.value})}/>
+    </div>}
+  <div className="student-auth__field">
+    <label htmlFor="student-cpf">CPF</label>
+    <input id="student-cpf" inputMode="numeric" autoComplete="username" placeholder="000.000.000-00" maxLength={14} value={values.cpf} onChange={e=>setValues({...values,cpf:formatCpf(e.target.value)})}/>
+    </div>
+  <div className="student-auth__field">
+    <label htmlFor="student-password">Senha</label>
+    <input id="student-password"
+    type="password" autoComplete={register?'new-password':'current-password'} value={values.password} onChange={e=>setValues({...values,password:e.target.value})}/>
+  </div>
+<p className="student-auth__switch">
+  {register?'Já possui uma conta?':'Ainda não possui uma conta?'} <Link to={register?'/entrar':'/cadastro'}
+  >{register?'Entrar':'Criar conta'}
+</Link>
+</p>
+{feedback&&<p className="student-auth__feedback" role="status">
+  {feedback}
+</p>}
+<button className="student-auth__submit"
+type="submit">
+{register?'Criar conta':'Entrar'}
+</button>
+<button className="student-auth__back"
+type="button" onClick={()=>navigate('/')}
+>Voltar</button>
+</form>
+</div>
+</section>
+</main>
 }
-
-export default StudentAuth
