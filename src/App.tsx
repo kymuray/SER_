@@ -1,7 +1,10 @@
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+﻿import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 
 import Footer from './components/layout/Footer'
 import Header from './components/layout/Header'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import { AuthProvider } from './contexts/AuthContext'
+
 import Home from './pages/Home/Home'
 import Agendar from './pages/Agendar/Agendar'
 import MeusAgendamentos from './pages/MeusAgendamentos/MeusAgendamentos'
@@ -22,16 +25,22 @@ function AppLayout() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/agendar" element={<Agendar />} />
-        <Route path="/agendamentos" element={<MeusAgendamentos />} />
         <Route path="/entrar" element={<StudentAuth />} />
         <Route path="/cadastro" element={<StudentAuth />} />
         <Route path="/responsavel" element={<Responsavel />} />
-        <Route path="/painel-responsavel" element={<PainelResponsavel />} />
-        <Route
-          path="/painel-responsavel/agenda"
-          element={<AgendaResponsavel />}
-        />
+
+        <Route element={<ProtectedRoute role="student" />}>
+          <Route path="/agendar" element={<Agendar />} />
+          <Route path="/agendamentos" element={<MeusAgendamentos />} />
+        </Route>
+
+        <Route element={<ProtectedRoute role="responsavel" />}>
+          <Route path="/painel-responsavel" element={<PainelResponsavel />} />
+          <Route
+            path="/painel-responsavel/agenda"
+            element={<AgendaResponsavel />}
+          />
+        </Route>
 
         <Route
           path="*"
@@ -55,8 +64,11 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppLayout />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
+
