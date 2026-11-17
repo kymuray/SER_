@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import Home from './pages/Home/Home'
 import Agendar from './pages/Agendar/Agendar'
 import MeusAgendamentos from './pages/MeusAgendamentos/MeusAgendamentos'
+import Profile from './pages/Profile/Profile'
 import StudentAuth from './pages/StudentAuth/StudentAuth'
 import Responsavel from './pages/Responsavel/Responsavel'
 import PainelResponsavel from './pages/Responsavel/PainelResponsavel'
@@ -32,6 +33,7 @@ function AppLayout() {
         <Route element={<ProtectedRoute role="student" />}>
           <Route path="/agendar" element={<Agendar />} />
           <Route path="/agendamentos" element={<MeusAgendamentos />} />
+          <Route path="/perfil" element={<Profile />} />
         </Route>
 
         <Route element={<ProtectedRoute role="responsavel" />}>
@@ -71,4 +73,3 @@ export default function App() {
     </AuthProvider>
   )
 }
-

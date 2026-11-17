@@ -370,3 +370,32 @@ button:disabled {
     font-size: 13px;
   }
 }
+
+/* Acesso à área do aluno no cabeçalho */
+.header-user-area {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-left: auto;
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms ease;
+}
+
+.header-user-area:hover {
+  color: var(--color-primary);
+}
+
+.header-user-area__icon {
+  width: 25px;
+  height: 25px;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

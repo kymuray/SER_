@@ -1,7 +1,9 @@
-﻿import {
+﻿
+import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from './firebase'
@@ -35,4 +37,21 @@ export async function getStudent(uid: string) {
   }
 
   return studentSnapshot.data()
+}
+
+export async function updateStudentPreferredName(
+  uid: string,
+  nomePreferido: string,
+) {
+  const nome = nomePreferido.trim()
+
+  if (!nome) {
+    throw new Error('Informe um nome preferido.')
+  }
+
+  const studentRef = doc(db, 'alunos', uid)
+
+  await updateDoc(studentRef, {
+    nome_preferido: nome,
+  })
 }
