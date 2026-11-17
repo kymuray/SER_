@@ -1,11 +1,9 @@
-
-import { Link, NavLink } from 'react-router-dom'
-import { siteNavigation } from './navigation'
-
-const mainLinks = siteNavigation.slice(0, 3)
-const accountLinks = siteNavigation.slice(3)
+import { Link, NavLink, useLocation } from 'react-router-dom'
 
 function Header() {
+  const { pathname } = useLocation()
+  const isResponsavelArea = pathname.startsWith('/painel-responsavel')
+
   return (
     <header className="site-header">
       <div className="site-header__inner">
@@ -13,29 +11,51 @@ function Header() {
           SER
         </Link>
 
-        <nav className="main-navigation" aria-label="Navegação principal">
-          {mainLinks.map(({ label, href }) => (
+        {isResponsavelArea ? (
+          <nav className="main-navigation" aria-label="Navegação da responsável">
             <NavLink
               className="main-navigation__link"
-              to={href}
-              key={href}
+              to="/painel-responsavel"
+              end
             >
-              {label}
+              Início
             </NavLink>
-          ))}
-        </nav>
-
-        <div className="site-header__actions">
-          {accountLinks.map(({ label, href }) => (
-            <Link
-              className={`site-action ${href === '/entrar' ? 'site-action--primary' : 'site-action--secondary'}`}
-              to={href}
-              key={href}
+            <NavLink
+              className="main-navigation__link"
+              to="/painel-responsavel/agenda"
             >
-              {label}
+              Agenda
+            </NavLink>
+          </nav>
+        ) : (
+          <nav className="main-navigation" aria-label="Navegação principal">
+            <NavLink className="main-navigation__link" to="/" end>
+              Início
+            </NavLink>
+            <NavLink className="main-navigation__link" to="/agendar">
+              Agendar escuta
+            </NavLink>
+            <NavLink className="main-navigation__link" to="/agendamentos">
+              Meus agendamentos
+            </NavLink>
+          </nav>
+        )}
+
+        {isResponsavelArea ? (
+          <span className="header-profile-label">Responsável</span>
+        ) : (
+          <div className="site-header__actions">
+            <Link className="site-action site-action--primary" to="/entrar">
+              Entrar
             </Link>
-          ))}
-        </div>
+            <Link
+              className="site-action site-action--secondary"
+              to="/responsavel"
+            >
+              Responsável
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   )
