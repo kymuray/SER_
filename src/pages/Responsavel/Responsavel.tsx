@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 export default function Responsavel(){const [email,setEmail]=useState('');
@@ -24,7 +24,7 @@ return}navigate('/painel-responsavel')}return <main className="staff-auth">
     </label>
   <label>Senha<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/>
     </label>
-  <p className="privacy-note">♧　Acesso protegido. Não compartilhe suas credenciais com terceiros.</p>
+  <p className="privacy-note">♧ Acesso protegido. Não compartilhe suas credenciais com terceiros.</p>
   {feedback&&<p className="form-feedback" role="status">
     {feedback}
   </p>}
