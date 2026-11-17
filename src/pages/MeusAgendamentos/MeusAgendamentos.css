@@ -1,9 +1,12 @@
+
 .appointments-page {
   width: min(var(--content-width), calc(100% - 112px));
   margin: 0 auto;
   padding: 48px 0 32px;
   flex: 1 0 auto;
 }
+
+/* Cabeçalho da página */
 
 .appointments-page__header {
   display: flex;
@@ -68,6 +71,8 @@
   line-height: 1.25;
 }
 
+/* Seção de atendimentos */
+
 .appointments-section {
   margin-top: 32px;
 }
@@ -95,6 +100,8 @@
   line-height: 1.2;
 }
 
+/* Estrutura geral dos cards */
+
 .appointment-card {
   display: flex;
   min-height: 220px;
@@ -104,6 +111,8 @@
   background: var(--color-surface);
   box-shadow: 0 10px 26px rgb(20 20 20 / 4%);
 }
+
+/* Painel de data */
 
 .appointment-card__date {
   display: flex;
@@ -134,18 +143,7 @@
   line-height: 0.9;
 }
 
-.appointment-card__date--empty {
-  gap: 0;
-}
-
-.appointment-card__date--empty svg {
-  width: 34px;
-  height: 34px;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.4;
-}
+/* Conteúdo do agendamento */
 
 .appointment-card__details,
 .appointment-card__empty-copy {
@@ -179,6 +177,8 @@
   line-height: 1.2;
 }
 
+/* Informações do atendimento */
+
 .appointment-card__meta {
   display: flex;
   flex-wrap: wrap;
@@ -203,6 +203,8 @@
   border-radius: 50%;
   content: '';
 }
+
+/* Botões do agendamento */
 
 .appointment-card__actions {
   display: flex;
@@ -234,22 +236,50 @@
   color: var(--color-primary);
 }
 
+/* Card sem agendamento */
+
 .appointment-card--empty {
+  position: relative;
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: stretch;
   min-height: 132px;
   background: var(--color-surface);
 }
 
+/* Painel preto com ícone */
+
 .appointment-card--empty .appointment-card__date {
-  width: 116px;
-  flex-basis: 116px;
+  grid-column: 1;
+  grid-row: 1;
+  width: auto;
+  height: 100%;
+  min-height: 132px;
+  box-sizing: border-box;
   padding: 22px;
+  gap: 0;
 }
 
-.appointment-card__empty-copy {
+.appointment-card__date--empty svg {
+  width: 34px;
+  height: 34px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+}
+
+/* Texto do estado vazio */
+
+.appointment-card--empty .appointment-card__empty-copy {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
+  min-width: 0;
   flex-direction: column;
   justify-content: center;
   padding: 22px 26px;
+  padding-right: 190px;
 }
 
 .appointment-card__empty-copy .appointment-card__status {
@@ -272,13 +302,13 @@
   line-height: 1.4;
 }
 
+/* Botão no canto inferior direito */
+
 .appointment-card__action {
   display: inline-flex;
-  align-self: center;
   min-height: 36px;
   align-items: center;
   justify-content: center;
-  margin: 22px 24px 22px 0;
   padding: 0 16px;
   border: 1px solid #a8142b;
   border-radius: 9px;
@@ -292,17 +322,28 @@
   transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
+.appointment-card--empty .appointment-card__action {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  margin: 0;
+}
+
 .appointment-card__action:hover {
   transform: translateY(-1px);
   background: var(--color-primary-dark);
   box-shadow: 0 7px 15px rgb(148 20 39 / 18%);
 }
 
+/* Responsividade intermediária */
+
 @media (max-width: 1180px) {
   .appointments-page {
     width: calc(100% - 64px);
   }
 }
+
+/* Responsividade para celulares e tablets */
 
 @media (max-width: 760px) {
   .appointments-page {
@@ -333,6 +374,7 @@
   .appointment-card__date,
   .appointment-card--empty .appointment-card__date {
     width: 100%;
+    height: auto;
     min-height: 76px;
     flex-basis: auto;
     flex-direction: row;
@@ -359,7 +401,34 @@
     align-self: flex-start;
     margin: 0 22px 22px;
   }
+
+  /* Card vazio no celular */
+
+  .appointment-card--empty {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .appointment-card--empty .appointment-card__date {
+    width: 100%;
+    height: auto;
+    min-height: 76px;
+    flex-basis: auto;
+  }
+
+  .appointment-card--empty .appointment-card__empty-copy {
+    padding: 20px 22px;
+  }
+
+  .appointment-card--empty .appointment-card__action {
+    position: static;
+    align-self: flex-start;
+    margin: 0 22px 22px;
+  }
 }
+
+/* Ajustes para telas pequenas */
 
 @media (max-width: 480px) {
   .appointments-page {
@@ -391,6 +460,8 @@
     font-size: 13px;
   }
 }
+
+/* Acessibilidade */
 
 @media (prefers-reduced-motion: reduce) {
   .appointment-card__button,

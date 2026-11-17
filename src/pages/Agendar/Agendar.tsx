@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { saveAppointment } from '../../utils/appointments'
 const weekdays=['D','S','T','Q','Q','S','S'];
 const times=['09:00','09:30','10:30','14:00','14:30','16:00']
 export default function Agendar(){const [month,setMonth]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1));
@@ -10,20 +11,20 @@ const [day,setDay]=useState<number|null>(null);
   const year=month.getFullYear(),m=month.getMonth();
   const days= new Date(year,m+1,0).getDate();
   const offset=new Date(year,m,1).getDay();
-  const available=useMemo(()=>Array.from({length:days},(_,i)=>i+1).filter(d=>[2,3,4].includes(new Date(year,m,d).getDay())),[days,year,m]);
+  const available=Array.from({length:days},(_,i)=>i+1).filter(d=>[2,3,4].includes(new Date(year,m,d).getDay()));
   const monthName=month.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   const dateLabel=day?new Date(year,m,day).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}):''
   if(confirmed)return <main className="page-shell booking-shell">
     <div className="steps-indicator">
-      <b>‚úì</b>
-      <b>‚úì</b>
+      <b>?</b>
+      <b>?</b>
       <b>3</b>
     </div>
   <section className="confirmation-card">
-    <div className="success-mark">‚úì</div>
+    <div className="success-mark">?</div>
     <span className="status-pill">Agendamento confirmado</span>
-    <h1>Seu momento est√° reservado.</h1>
-    <p>Voc√™ poder√° consultar, remarcar ou cancelar este agendamento quando precisar.</p>
+    <h1>Seu momento est· reservado.</h1>
+    <p>VocÍ poder· consultar, remarcar ou cancelar este agendamento quando precisar.</p>
     <div className="booking-summary">
       <div>
         <small>Data</small>
@@ -32,9 +33,9 @@ const [day,setDay]=useState<number|null>(null);
         </strong>
     </div>
   <div>
-    <small>Hor√°rio</small>
+    <small>Hor·rio</small>
     <strong>
-      {time} ‚Äî 30 minutos</strong>
+      {time} ó 30 minutos</strong>
   </div>
 <div>
   <small>Local</small>
@@ -48,7 +49,7 @@ return <main className="page-shell booking-shell">
   <div className="page-heading">
     <p className="eyebrow">Programa SER</p>
     <h1>Agendar escuta</h1>
-    <p className="page-lead">Escolha uma data e um hor√°rio dispon√≠vel para seu atendimento de acolhimento.</p>
+    <p className="page-lead">Escolha uma data e um hor·rio disponÌvel para seu atendimento de acolhimento.</p>
   </div>
 <div className="steps-indicator">
   <b className={step>=1?'is-active':''}
@@ -60,13 +61,13 @@ return <main className="page-shell booking-shell">
 <div className="booking-grid">
   <section className="surface-card calendar-card">
     <div className="calendar-head">
-      <button className="icon-button" aria-label="M√™s anterior" onClick={()=>setMonth(new Date(year,m-1,1))}
-        >‚Äπ</button>
+      <button className="icon-button" aria-label="MÍs anterior" onClick={()=>setMonth(new Date(year,m-1,1))}
+        >ã</button>
       <h2>
         {monthName}
       </h2>
-    <button className="icon-button" aria-label="Pr√≥ximo m√™s" onClick={()=>setMonth(new Date(year,m+1,1))}
-      >‚Ä∫</button>
+    <button className="icon-button" aria-label="PrÛximo mÍs" onClick={()=>setMonth(new Date(year,m+1,1))}
+      >õ</button>
   </div>
 <div className="calendar-grid">
   {weekdays.map((d,i)=>
@@ -88,21 +89,21 @@ return <button key={d} disabled={!enabled} className={`day-button ${day===d?'sel
 </div>
 <div className="calendar-legend">
   <span>
-    <i/> Dispon√≠vel</span>
+    <i/> DisponÌvel</span>
   <span>
     <i className="legend-selected"/> Selecionado</span>
 </div>
-<p className="availability-note">Os hor√°rios ilustrativos seguem a disponibilidade semanal informada: ter√ßas e quartas pela manh√£ e quintas √† tarde.</p>
+<p className="availability-note">Os hor·rios ilustrativos seguem a disponibilidade semanal informada: terÁas e quartas pela manh„ e quintas ‡ tarde.</p>
 </section>
 <section className="surface-card time-card">
   <p className="eyebrow">
     {day?dateLabel:'Selecione uma data'}
   </p>
 <h2>
-  {day?`${day} de ${monthName.split(' de ')[0]}`:'Hor√°rios dispon√≠veis'}
+  {day?`${day} de ${monthName.split(' de ')[0]}`:'Hor·rios disponÌveis'}
 </h2>
 <p className="field-hint">
-  {day?'Selecione um hor√°rio dispon√≠vel:':'Escolha primeiro um dia destacado no calend√°rio.'}
+  {day?'Selecione um hor·rio disponÌvel:':'Escolha primeiro um dia destacado no calend·rio.'}
 </p>
 <div className="time-options">
   {times.map(t=>
@@ -112,7 +113,7 @@ return <button key={d} disabled={!enabled} className={`day-button ${day===d?'sel
     >{t}
   </button>)}
 </div>
-{day&&time&&<div className="selected-slot">‚ó∑„ÄÄHor√°rio escolhido: <strong>
+{day&&time&&<div className="selected-slot">? Hor·rio escolhido: <strong>
     {time}
   </strong>
 </div>}
@@ -120,13 +121,36 @@ return <button key={d} disabled={!enabled} className={`day-button ${day===d?'sel
   >Continuar</button>
 {step===3&&<div className="confirm-inline">
   <p>Confirme sua escolha: <strong>
-      {dateLabel}, √†s {time}
+      {dateLabel}, ‡s {time}
     </strong>.</p>
-<p className="field-hint">Para concluir na vers√£o demonstrativa, confirme abaixo.</p>
-<button className="button button--primary button--wide" onClick={()=>setConfirmed(true)}
-  >Confirmar agendamento</button>
+<p className="field-hint">Para concluir na vers„o demonstrativa, confirme abaixo.</p>
+<button
+  className="button button--primary button--wide"
+  onClick={() => {
+    if (!day || !time) return
+
+    const selectedDate = [
+      year,
+      String(m + 1).padStart(2, '0'),
+      String(day).padStart(2, '0'),
+    ].join('-')
+
+    saveAppointment({
+      date: selectedDate,
+      time,
+      status: 'Agendamento confirmado',
+      title: 'Escuta SER',
+      location: 'Sala do SER',
+      durationMinutes: 30,
+    })
+
+    setConfirmed(true)
+  }}
+>
+  Confirmar agendamento
+</button>
 </div>}
 </section>
 </div>
-<p className="booking-footnote">J√° possui um hor√°rio? <Link to="/agendamentos">Consulte seus agendamentos</Link>.</p>
+<p className="booking-footnote">J· possui um hor·rio? <Link to="/agendamentos">Consulte seus agendamentos</Link>.</p>
 </main>}
