@@ -889,3 +889,346 @@
     padding: 28px 22px;
   }
 }
+
+
+/* =========================================================
+   Ajustes de escala, etapas e responsividade do agendamento
+   ========================================================= */
+
+/* Etapas: somente as etapas já alcançadas ficam vermelhas. */
+.steps-indicator {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.steps-indicator li {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border: 1px solid #d7d8d5;
+  border-radius: 50%;
+  background: #fff;
+  color: #777;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.steps-indicator li.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Cards um pouco mais compactos em computadores. */
+.booking-shell {
+  width: min(1040px, calc(100% - 64px));
+  margin: 48px auto 0;
+  padding-bottom: 12px;
+}
+
+.booking-shell .page-heading {
+  margin-bottom: 24px;
+}
+
+.booking-shell .page-heading h1 {
+  font-size: clamp(2rem, 3vw, 2.55rem);
+}
+
+.booking-shell .page-lead {
+  max-width: 650px;
+  font-size: 15px;
+}
+
+.booking-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.calendar-card,
+.time-card {
+  min-width: 0;
+  padding: 24px;
+  border-radius: 20px;
+}
+
+.calendar-head {
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.calendar-head h2,
+.time-card h2 {
+  font-size: 18px;
+}
+
+.calendar-grid {
+  gap: 7px;
+}
+
+.weekday {
+  font-size: 12px;
+}
+
+.day-button {
+  min-width: 0;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.time-card .eyebrow {
+  text-align: left;
+}
+
+.time-card h2 {
+  text-align: left;
+}
+
+.field-hint {
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.time-options {
+  gap: 8px;
+}
+
+.time-options button {
+  min-height: 38px;
+  font-size: 12px;
+}
+
+.selected-slot {
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.button--wide {
+  min-height: 42px;
+  margin-top: 16px;
+}
+
+.availability-note,
+.demo-note {
+  font-size: 11px;
+}
+
+.confirmation-card {
+  max-width: 600px;
+  padding: 34px;
+}
+
+/* Evita que os elementos internos forcem rolagem horizontal. */
+.booking-grid > *,
+.calendar-card,
+.time-card,
+.confirmation-card {
+  min-width: 0;
+}
+
+@media (max-width: 850px) {
+  .booking-shell {
+    width: min(680px, calc(100% - 40px));
+    margin-top: 36px;
+  }
+
+  .booking-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .calendar-card,
+  .time-card {
+    padding: 22px;
+  }
+
+  .time-options button {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-shell.booking-shell {
+    width: calc(100% - 28px);
+    margin: 24px auto 0;
+  }
+
+  .booking-shell .page-heading {
+    margin-bottom: 18px;
+  }
+
+  .booking-shell .page-heading h1 {
+    font-size: 29px;
+    line-height: 1.12;
+  }
+
+  .booking-shell .page-lead {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .steps-indicator {
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .steps-indicator li {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .calendar-card,
+  .time-card {
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .calendar-head {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .calendar-head h2,
+  .time-card h2 {
+    font-size: 16px;
+  }
+
+  .icon-button {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+  }
+
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .weekday {
+    padding: 5px 0;
+    font-size: 11px;
+  }
+
+  .day-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  .calendar-legend {
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 16px;
+    font-size: 11px;
+  }
+
+  .availability-note {
+    margin-top: 14px;
+    font-size: 10px;
+  }
+
+  .time-card .eyebrow,
+  .time-card h2 {
+    text-align: left;
+  }
+
+  .time-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .time-options button {
+    min-width: 0;
+    min-height: 40px;
+    font-size: 12px;
+  }
+
+  .selected-slot {
+    margin-top: 12px;
+    font-size: 11px;
+  }
+
+  .button--wide {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 14px;
+  }
+
+  .booking-footnote {
+    margin: 18px 0 26px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .confirmation-card {
+    margin: 20px auto;
+    padding: 26px 18px;
+    border-radius: 17px;
+  }
+
+  .confirmation-card h1 {
+    font-size: 22px;
+  }
+
+  .booking-summary {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 20px 0;
+    padding: 15px;
+  }
+
+  .booking-summary strong {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 360px) {
+  .page-shell.booking-shell {
+    width: calc(100% - 22px);
+  }
+
+  .calendar-card,
+  .time-card {
+    padding: 13px;
+  }
+
+  .calendar-grid {
+    gap: 3px;
+  }
+
+  .day-button {
+    font-size: 11px;
+  }
+}
+
+
+/* Alinhamento dos ícones de navegação do calendário */
+.calendar-head .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  text-align: center;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.calendar-head .icon-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}

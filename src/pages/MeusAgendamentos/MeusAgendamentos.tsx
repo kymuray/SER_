@@ -1,17 +1,19 @@
-
 import { useState } from 'react'
-import './MeusAgendamentos.css'
+import { useNavigate } from 'react-router-dom'
 import {
   getAppointment,
   removeAppointment,
   type Appointment,
 } from '../../utils/appointments'
+import './MeusAgendamentos.css'
 
 function ScheduledAppointmentCard({
   appointment,
+  onReschedule,
   onCancel,
 }: {
   appointment: Appointment
+  onReschedule: () => void
   onCancel: () => void
 }) {
   const date = new Date(`${appointment.date}T12:00:00`)
@@ -46,6 +48,7 @@ function ScheduledAppointmentCard({
           <button
             type="button"
             className="appointment-card__button appointment-card__button--neutral"
+            onClick={onReschedule}
           >
             Remarcar
           </button>
@@ -92,9 +95,17 @@ function EmptyAppointmentCard() {
 }
 
 function MeusAgendamentos() {
+  const navigate = useNavigate()
+
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(
     () => getAppointment()
   )
+
+  function handleRescheduleAppointment() {
+    // Abre o fluxo de agendamento. Ao confirmar o novo horário,
+    // saveAppointment atualiza o agendamento demonstrativo existente.
+    navigate('/agendar')
+  }
 
   function handleCancelAppointment() {
     const confirmed = window.confirm(
@@ -141,6 +152,7 @@ function MeusAgendamentos() {
         {nextAppointment ? (
           <ScheduledAppointmentCard
             appointment={nextAppointment}
+            onReschedule={handleRescheduleAppointment}
             onCancel={handleCancelAppointment}
           />
         ) : (

@@ -399,3 +399,114 @@ button:disabled {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+
+/* Ajustes finais para evitar cortes e rolagem horizontal no celular. */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: clip;
+}
+
+@media (max-width: 560px) {
+  .site-header {
+    min-height: 0;
+  }
+
+  .site-header__inner {
+    display: grid;
+    width: calc(100% - 28px);
+    min-height: 0;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0 0;
+  }
+
+  .site-logo {
+    font-size: 30px;
+  }
+
+  .site-header__actions {
+    justify-content: flex-end;
+    gap: 7px;
+    margin-left: 0;
+  }
+
+  .site-action {
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 10px;
+    border-radius: 9px;
+    font-size: 11px;
+  }
+
+  .main-navigation {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    gap: 18px;
+    margin: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .main-navigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  .main-navigation__link {
+    flex: 0 0 auto;
+    padding: 0 2px;
+    font-size: 12px;
+  }
+
+  .header-profile-label {
+    justify-self: end;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .header-user-area {
+    justify-self: end;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .header-user-area__icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  .site-footer__inner {
+    width: calc(100% - 28px);
+  }
+}
+
+@media (max-width: 360px) {
+  .site-header__inner {
+    width: calc(100% - 22px);
+  }
+
+  .site-action {
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .main-navigation {
+    gap: 14px;
+  }
+
+  .main-navigation__link {
+    font-size: 11px;
+  }
+}
