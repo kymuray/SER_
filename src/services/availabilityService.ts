@@ -18,12 +18,26 @@ export type AvailableTime = {
   id_agendamento: number | null
 }
 
+function validateHalfHourTime(horario: string) {
+  const match = /^(\\d{2}):(00|30)$/.exec(horario.trim())
+
+  if (!match) {
+    throw new Error('Os horários devem ser definidos em intervalos de 30 minutos.')
+  }
+}
+
 export async function createAvailableTime(
   data: string,
   horario: string,
 ) {
   const date = data.trim()
   const time = horario.trim()
+
+  if (!date || !time) {
+    throw new Error('Informe a data e o horário.')
+  }
+
+  validateHalfHourTime(time)
 
   const existingQuery = query(
     collection(db, 'horarios_disponiveis'),
@@ -56,13 +70,8 @@ export async function createAvailableTime(
   return id_horario
 }
 
-export async function getAvailableTimes(
-  data?: string,
-) {
-  const horariosRef = collection(
-    db,
-    'horarios_disponiveis',
-  )
+export async function getAvailableTimes(data?: string) {
+  const horariosRef = collection(db, 'horarios_disponiveis')
 
   const horariosQuery = data
     ? query(
@@ -77,14 +86,12 @@ export async function getAvailableTimes(
 
   const snapshot = await getDocs(horariosQuery)
 
-  return snapshot.docs.map(
-    (item) => item.data() as AvailableTime,
-  )
+  return snapshot.docs
+    .map((item) => item.data() as AvailableTime)
+    .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`))
 }
 
-export async function getAvailableTime(
-  idHorario: number,
-) {
+export async function getAvailableTime(idHorario: number) {
   const horarioRef = doc(
     db,
     'horarios_disponiveis',
@@ -118,10 +125,10 @@ export async function updateAvailableTime(
   }
 
   if (!snapshot.data().disponivel) {
-    throw new Error(
-      'Não é possível alterar um horário já utilizado.',
-    )
+    throw new Error('Não é possível alterar um horário já utilizado.')
   }
+
+  validateHalfHourTime(horario)
 
   await updateDoc(horarioRef, {
     data: data.trim(),
@@ -129,9 +136,7 @@ export async function updateAvailableTime(
   })
 }
 
-export async function deleteAvailableTime(
-  idHorario: number,
-) {
+export async function deleteAvailableTime(idHorario: number) {
   const horarioRef = doc(
     db,
     'horarios_disponiveis',
@@ -145,61 +150,10 @@ export async function deleteAvailableTime(
   }
 
   if (!snapshot.data().disponivel) {
-    throw new Error(
-      'Não é possível excluir um horário já utilizado.',
-    )
+    throw new Error('Não é possível excluir um horário já utilizado.')
   }
 
   await updateDoc(horarioRef, {
     disponivel: false,
-  })
-}
-
-export async function reserveAvailableTime(
-  idHorario: number,
-  idAgendamento: number,
-) {
-  const horarioRef = doc(
-    db,
-    'horarios_disponiveis',
-    String(idHorario),
-  )
-
-  const snapshot = await getDoc(horarioRef)
-
-  if (!snapshot.exists()) {
-    throw new Error('Horário não encontrado.')
-  }
-
-  const horario = snapshot.data()
-
-  if (!horario.disponivel) {
-    throw new Error('Este horário não está disponível.')
-  }
-
-  await updateDoc(horarioRef, {
-    disponivel: false,
-    id_agendamento: idAgendamento,
-  })
-}
-
-export async function releaseAvailableTime(
-  idHorario: number,
-) {
-  const horarioRef = doc(
-    db,
-    'horarios_disponiveis',
-    String(idHorario),
-  )
-
-  const snapshot = await getDoc(horarioRef)
-
-  if (!snapshot.exists()) {
-    throw new Error('Horário não encontrado.')
-  }
-
-  await updateDoc(horarioRef, {
-    disponivel: true,
-    id_agendamento: null,
   })
 }
