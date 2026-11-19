@@ -263,8 +263,6 @@ export default function Agendar() {
               const candidate = new Date(year, monthIndex, calendarDay)
               const today = new Date()
               today.setHours(0, 0, 0, 0)
-
-              const dateKey = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(calendarDay).padStart(2, '0')}`
               const enabled = candidate >= today && availableDays.has(calendarDay)
 
               return (
