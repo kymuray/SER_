@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   cancelAppointment,
@@ -92,7 +92,6 @@ function EmptyAppointmentCard() {
 
 export default function MeusAgendamentos() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [appointments, setAppointments] = useState<AppointmentData[]>([])
   const [loading, setLoading] = useState(true)
   const [feedback, setFeedback] = useState('')
