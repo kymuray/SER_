@@ -15,11 +15,28 @@ import {
 import './MeusAgendamentos.css'
 
 function parseDateParts(date: string | unknown) {
-  if (typeof date !== 'string') {
-    return null
+  let value = ''
+
+  if (typeof date === 'string') {
+    value = date.trim()
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    'toDate' in date &&
+    typeof (date as { toDate?: unknown }).toDate === 'function'
+  ) {
+    const converted = (date as { toDate: () => Date }).toDate()
+    if (converted instanceof Date && !Number.isNaN(converted.getTime())) {
+      return {
+        year: converted.getFullYear(),
+        month: converted.getMonth() + 1,
+        day: converted.getDate(),
+        parsedDate: converted,
+      }
+    }
   }
 
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date.trim())
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
 
   if (!match) {
     return null
@@ -72,7 +89,6 @@ function ScheduledAppointmentCard({
         <strong>{parseDateParts(appointment.data)?.day.toString().padStart(2, '0') ?? '--'}</strong>
         <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { month: 'long' }) ?? 'Data'}</span>
       </div>
-
       <div className="appointment-card__details">
         <p className="appointment-card__status">Agendamento confirmado</p>
         <h3>Escuta SER</h3>
