@@ -1,7 +1,6 @@
 
 import BenefitsSection from '../../components/home/BenefitsSection'
 import HeroSection from '../../components/home/HeroSection'
-import HowItWorksSection from '../../components/home/HowItWorksSection'
 import './Home.css'
 
 function Home() {
@@ -12,7 +11,7 @@ function Home() {
         <BenefitsSection />
       </div>
 
-      <HowItWorksSection />
+     
     </main>
   )
 }
