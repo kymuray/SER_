@@ -14,22 +14,20 @@ import {
 } from '../../services/availabilityService'
 import './MeusAgendamentos.css'
 
-function formatDate(date: string | unknown) {
+function parseDateParts(date: string | unknown) {
   if (typeof date !== 'string') {
-    return 'Data não disponível'
+    return null
   }
 
-  const normalized = date.trim()
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date.trim())
 
   if (!match) {
-    return 'Data não disponível'
+    return null
   }
 
   const year = Number(match[1])
   const month = Number(match[2])
   const day = Number(match[3])
-
   const parsedDate = new Date(year, month - 1, day)
 
   if (
@@ -37,18 +35,25 @@ function formatDate(date: string | unknown) {
     parsedDate.getMonth() !== month - 1 ||
     parsedDate.getDate() !== day
   ) {
+    return null
+  }
+
+  return { year, month, day, parsedDate }
+}
+
+function formatDate(date: string | unknown) {
+  const parts = parseDateParts(date)
+
+  if (!parts) {
     return 'Data não disponível'
   }
 
-  const weekday = parsedDate.toLocaleDateString('pt-BR', {
+  return parts.parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
-  })
-
-  const monthName = parsedDate.toLocaleDateString('pt-BR', {
+    day: '2-digit',
     month: 'long',
+    year: 'numeric',
   })
-
-  return weekday + ', ' + String(day).padStart(2, '0') + ' de ' + monthName + ' de ' + year
 }
 
 function ScheduledAppointmentCard({
@@ -63,17 +68,9 @@ function ScheduledAppointmentCard({
   return (
     <div className="appointment-card appointment-card--scheduled">
       <div className="appointment-card__date">
-        <span>{formatDate(appointment.data).split(',')[0]}</span>
-        <strong>{appointment.data.slice(8, 10)}</strong>
-        <span>
-          {new Date(
-            Number(appointment.data.slice(0, 4)),
-            Number(appointment.data.slice(5, 7)) - 1,
-            Number(appointment.data.slice(8, 10)),
-          ).toLocaleDateString('pt-BR', {
-            month: 'long',
-          })}
-        </span>
+        <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { weekday: 'long' }) ?? 'Data'}</span>
+        <strong>{parseDateParts(appointment.data)?.day.toString().padStart(2, '0') ?? '--'}</strong>
+        <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { month: 'long' }) ?? 'Data'}</span>
       </div>
 
       <div className="appointment-card__details">
