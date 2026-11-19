@@ -4,17 +4,14 @@ import {
   getDoc,
   getDocs,
   query,
-  where,
-  setDoc,
-  updateDoc,
+  runTransaction,
   serverTimestamp,
+  updateDoc,
+  where,
 } from 'firebase/firestore'
 import { db } from './firebase'
 
-export type AppointmentStatus =
-  | 'agendado'
-  | 'cancelado'
-  | 'concluido'
+export type AppointmentStatus = 'agendado' | 'cancelado'
 
 export type AppointmentData = {
   id_agendamento: number
@@ -34,65 +31,100 @@ function normalizeTime(time: string) {
   return time.trim()
 }
 
+function isFutureDate(date: string) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const value = new Date(`${date}T00:00:00`)
+  return value >= today
+}
+
 export async function createAppointment(
-  data: Omit<AppointmentData, 'id_agendamento' | 'data_criacao'>,
+  data: Omit<AppointmentData, 'id_agendamento' | 'data_criacao'> & {
+    id_horario: number
+  },
 ) {
   const date = normalizeDate(data.data)
   const time = normalizeTime(data.horario)
 
-  // Impede dois agendamentos ativos no mesmo dia e horário.
-  const sameSlotQuery = query(
-    collection(db, 'agendamentos'),
-    where('data', '==', date),
-    where('horario', '==', time),
-    where('status', '==', 'agendado'),
-  )
-
-  const sameSlotSnapshot = await getDocs(sameSlotQuery)
-
-  if (!sameSlotSnapshot.empty) {
-    throw new Error('Este horário já está agendado.')
+  if (!date || !time) {
+    throw new Error('Informe a data e o horário do agendamento.')
   }
 
-  // Um aluno só pode possuir um agendamento futuro ativo.
-  const studentQuery = query(
+  if (!isFutureDate(date)) {
+    throw new Error('Escolha uma data futura.')
+  }
+
+  const slotRef = doc(
+    db,
+    'horarios_disponiveis',
+    String(data.id_horario),
+  )
+
+  const activeAppointmentsQuery = query(
     collection(db, 'agendamentos'),
     where('id_aluno', '==', data.id_aluno),
     where('status', '==', 'agendado'),
   )
 
-  const studentSnapshot = await getDocs(studentQuery)
+  const activeAppointments = await getDocs(activeAppointmentsQuery)
 
-  if (!studentSnapshot.empty) {
+  const hasFutureAppointment = activeAppointments.docs.some((item) => {
+    const appointment = item.data()
+    return typeof appointment.data === 'string' && isFutureDate(appointment.data)
+  })
+
+  if (hasFutureAppointment) {
     throw new Error(
-      'Este aluno já possui um agendamento futuro ativo.',
+      'Você já possui um agendamento futuro ativo. Cancele ou reagende o atual.',
     )
   }
 
   const id_agendamento = Date.now()
-
   const appointmentRef = doc(
     db,
     'agendamentos',
     String(id_agendamento),
   )
 
-  await setDoc(appointmentRef, {
-    id_agendamento,
-    data_criacao: serverTimestamp(),
-    status: 'agendado',
-    id_responsavel: data.id_responsavel,
-    id_aluno: data.id_aluno,
-    data: date,
-    horario: time,
+  await runTransaction(db, async (transaction) => {
+    const slotSnapshot = await transaction.get(slotRef)
+
+    if (!slotSnapshot.exists()) {
+      throw new Error('Este horário não existe.')
+    }
+
+    const slot = slotSnapshot.data()
+
+    if (
+      slot.data !== date ||
+      slot.horario !== time ||
+      slot.disponivel !== true ||
+      slot.id_agendamento !== null
+    ) {
+      throw new Error('Este horário não está mais disponível.')
+    }
+
+    transaction.set(appointmentRef, {
+      id_agendamento,
+      data_criacao: serverTimestamp(),
+      status: 'agendado',
+      id_responsavel: data.id_responsavel,
+      id_aluno: data.id_aluno,
+      data,
+      horario: time,
+    })
+
+    transaction.update(slotRef, {
+      disponivel: false,
+      id_agendamento,
+    })
   })
 
   return id_agendamento
 }
 
-export async function getAppointment(
-  idAgendamento: number,
-) {
+export async function getAppointment(idAgendamento: number) {
   const appointmentRef = doc(
     db,
     'agendamentos',
@@ -105,12 +137,10 @@ export async function getAppointment(
     return null
   }
 
-  return snapshot.data()
+  return snapshot.data() as AppointmentData
 }
 
-export async function getAppointmentsByStudent(
-  idAluno: number,
-) {
+export async function getAppointmentsByStudent(idAluno: number) {
   const appointmentsQuery = query(
     collection(db, 'agendamentos'),
     where('id_aluno', '==', idAluno),
@@ -118,12 +148,12 @@ export async function getAppointmentsByStudent(
 
   const snapshot = await getDocs(appointmentsQuery)
 
-  return snapshot.docs.map((item) => item.data())
+  return snapshot.docs
+    .map((item) => item.data() as AppointmentData)
+    .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`))
 }
 
-export async function getAppointmentsByResponsible(
-  idResponsavel: number,
-) {
+export async function getAppointmentsByResponsible(idResponsavel: number) {
   const appointmentsQuery = query(
     collection(db, 'agendamentos'),
     where('id_responsavel', '==', idResponsavel),
@@ -131,32 +161,63 @@ export async function getAppointmentsByResponsible(
 
   const snapshot = await getDocs(appointmentsQuery)
 
-  return snapshot.docs.map((item) => item.data())
+  return snapshot.docs
+    .map((item) => item.data() as AppointmentData)
+    .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`))
 }
 
-export async function cancelAppointment(
-  idAgendamento: number,
-) {
+export async function cancelAppointment(idAgendamento: number) {
   const appointmentRef = doc(
     db,
     'agendamentos',
     String(idAgendamento),
   )
 
-  const snapshot = await getDoc(appointmentRef)
+  const appointmentSnapshot = await getDoc(appointmentRef)
 
-  if (!snapshot.exists()) {
+  if (!appointmentSnapshot.exists()) {
     throw new Error('Agendamento não encontrado.')
   }
 
-  const appointment = snapshot.data()
+  const appointment = appointmentSnapshot.data()
 
   if (appointment.status !== 'agendado') {
     throw new Error('Este agendamento não pode ser cancelado.')
   }
 
-  await updateDoc(appointmentRef, {
-    status: 'cancelado',
+  const slotQuery = query(
+    collection(db, 'horarios_disponiveis'),
+    where('id_agendamento', '==', idAgendamento),
+  )
+
+  const slotSnapshot = await getDocs(slotQuery)
+
+  await runTransaction(db, async (transaction) => {
+    const appointmentCurrent = await transaction.get(appointmentRef)
+
+    if (!appointmentCurrent.exists()) {
+      throw new Error('Agendamento não encontrado.')
+    }
+
+    if (appointmentCurrent.data().status !== 'agendado') {
+      throw new Error('Este agendamento não pode ser cancelado.')
+    }
+
+    transaction.update(appointmentRef, {
+      status: 'cancelado',
+    })
+
+    for (const slotDoc of slotSnapshot.docs) {
+      const slotRef = doc(
+        db,
+        'horarios_disponiveis',
+        slotDoc.id,
+      )
+      transaction.update(slotRef, {
+        disponivel: true,
+        id_agendamento: null,
+      })
+    }
   })
 }
 
@@ -164,6 +225,7 @@ export async function rescheduleAppointment(
   idAgendamento: number,
   data: string,
   horario: string,
+  idHorarioNovo: number,
 ) {
   const appointmentRef = doc(
     db,
@@ -171,65 +233,105 @@ export async function rescheduleAppointment(
     String(idAgendamento),
   )
 
-  const snapshot = await getDoc(appointmentRef)
+  const appointmentSnapshot = await getDoc(appointmentRef)
 
-  if (!snapshot.exists()) {
+  if (!appointmentSnapshot.exists()) {
     throw new Error('Agendamento não encontrado.')
   }
 
-  const appointment = snapshot.data()
+  const currentAppointment = appointmentSnapshot.data()
 
-  if (appointment.status !== 'agendado') {
-    throw new Error(
-      'Somente agendamentos ativos podem ser reagendados.',
-    )
+  if (currentAppointment.status !== 'agendado') {
+    throw new Error('Somente agendamentos ativos podem ser reagendados.')
   }
 
-  const conflictQuery = query(
-    collection(db, 'agendamentos'),
-    where('data', '==', normalizeDate(data)),
-    where('horario', '==', normalizeTime(horario)),
-    where('status', '==', 'agendado'),
-  )
+  const newDate = normalizeDate(data)
+  const newTime = normalizeTime(horario)
 
-  const conflictSnapshot = await getDocs(conflictQuery)
-
-  const hasConflict = conflictSnapshot.docs.some(
-    (item) => item.id !== String(idAgendamento),
-  )
-
-  if (hasConflict) {
-    throw new Error('Este horário já está agendado.')
+  if (!isFutureDate(newDate)) {
+    throw new Error('Escolha uma data futura.')
   }
 
-  await updateDoc(appointmentRef, {
-    data: normalizeDate(data),
-    horario: normalizeTime(horario),
+  const currentSlotQuery = query(
+    collection(db, 'horarios_disponiveis'),
+    where('id_agendamento', '==', idAgendamento),
+  )
+
+  const currentSlotSnapshot = await getDocs(currentSlotQuery)
+
+  const newSlotRef = doc(
+    db,
+    'horarios_disponiveis',
+    String(idHorarioNovo),
+  )
+
+  await runTransaction(db, async (transaction) => {
+    const newSlotSnapshot = await transaction.get(newSlotRef)
+
+    if (!newSlotSnapshot.exists()) {
+      throw new Error('O novo horário não existe.')
+    }
+
+    const newSlot = newSlotSnapshot.data()
+
+    if (
+      newSlot.data !== newDate ||
+      newSlot.horario !== newTime ||
+      newSlot.disponivel !== true ||
+      newSlot.id_agendamento !== null
+    ) {
+      throw new Error('O novo horário não está disponível.')
+    }
+
+    const appointmentCurrent = await transaction.get(appointmentRef)
+
+    if (!appointmentCurrent.exists()) {
+      throw new Error('Agendamento não encontrado.')
+    }
+
+    if (appointmentCurrent.data().status !== 'agendado') {
+      throw new Error('Este agendamento não pode ser reagendado.')
+    }
+
+    for (const slotDoc of currentSlotSnapshot.docs) {
+      if (slotDoc.id !== newSlotRef.id) {
+        const oldSlotRef = doc(
+          db,
+          'horarios_disponiveis',
+          slotDoc.id,
+        )
+        transaction.update(oldSlotRef, {
+          disponivel: true,
+          id_agendamento: null,
+        })
+      }
+    }
+
+    transaction.update(newSlotRef, {
+      disponivel: false,
+      id_agendamento: idAgendamento,
+    })
+
+    transaction.update(appointmentRef, {
+      data: newDate,
+      horario: newTime,
+    })
   })
 }
 
-export async function completeAppointment(
+export async function getReservedTimeByAppointment(
   idAgendamento: number,
 ) {
-  const appointmentRef = doc(
-    db,
-    'agendamentos',
-    String(idAgendamento),
+  const slotQuery = query(
+    collection(db, 'horarios_disponiveis'),
+    where('id_agendamento', '==', idAgendamento),
   )
 
-  const snapshot = await getDoc(appointmentRef)
+  const snapshot = await getDocs(slotQuery)
 
-  if (!snapshot.exists()) {
-    throw new Error('Agendamento não encontrado.')
+  if (snapshot.empty) {
+    return null
   }
 
-  if (snapshot.data().status !== 'agendado') {
-    throw new Error(
-      'Somente agendamentos ativos podem ser concluídos.',
-    )
-  }
-
-  await updateDoc(appointmentRef, {
-    status: 'concluido',
-  })
+  return snapshot.docs[0].data()
 }
