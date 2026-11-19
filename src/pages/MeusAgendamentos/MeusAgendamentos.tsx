@@ -14,8 +14,32 @@ import {
 } from '../../services/availabilityService'
 import './MeusAgendamentos.css'
 
-function formatDate(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
+function formatDate(date: string | unknown) {
+  if (typeof date !== 'string') {
+    return 'Data não disponível'
+  }
+
+  const normalized = date.trim()
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
+
+  if (!match) {
+    return 'Data não disponível'
+  }
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const parsedDate = new Date(year, month - 1, day)
+
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return 'Data não disponível'
+  }
+
+  return parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -35,9 +59,9 @@ function ScheduledAppointmentCard({
   return (
     <div className="appointment-card appointment-card--scheduled">
       <div className="appointment-card__date">
-        <span>{new Date(`${appointment.data}T12:00:00`).toLocaleDateString('pt-BR', { month: 'long' })}</span>
-        <strong>{new Date(`${appointment.data}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit' })}</strong>
-        <span>{new Date(`${appointment.data}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long' })}</span>
+        <span>{formatDate(appointment.data).split(' de ')[1] ?? 'Data'}</span>
+        <strong>{formatDate(appointment.data).match(/\b\d{2}\b/)?.[0] ?? '--'}</strong>
+        <span>{formatDate(appointment.data).split(',')[0]}</span>
       </div>
 
       <div className="appointment-card__details">
