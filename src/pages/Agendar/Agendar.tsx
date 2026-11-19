@@ -29,32 +29,51 @@ function StepsIndicator({ step }: { step: number }) {
   )
 }
 
-function formatDate(date: string | unknown) {
-  if (typeof date !== 'string') {
-    return 'Data não disponível'
+function parseDate(date: unknown) {
+  if (typeof date === 'string') {
+    const normalized = date.trim()
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
+
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const parsed = new Date(year, month - 1, day)
+
+      if (
+        parsed.getFullYear() === year &&
+        parsed.getMonth() === month - 1 &&
+        parsed.getDate() === day
+      ) {
+        return parsed
+      }
+    }
+
+    const parsed = new Date(normalized)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
   }
 
-  const normalized = date.trim()
-
-  // As datas do SER são armazenadas como YYYY-MM-DD.
-  // Montar a data pelos números evita interpretações diferentes
-  // entre navegador, fuso horário e formato regional.
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
-
-  if (!match) {
-    return 'Data não disponível'
+  if (date instanceof Date) {
+    return Number.isNaN(date.getTime()) ? null : date
   }
-
-  const year = Number(match[1])
-  const month = Number(match[2])
-  const day = Number(match[3])
-  const parsedDate = new Date(year, month - 1, day)
 
   if (
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
+    date &&
+    typeof date === 'object' &&
+    'toDate' in date &&
+    typeof (date as { toDate?: unknown }).toDate === 'function'
   ) {
+    const parsed = (date as { toDate: () => Date }).toDate()
+    return parsed instanceof Date && !Number.isNaN(parsed.getTime()) ? parsed : null
+  }
+
+  return null
+}
+
+function formatDate(date: unknown) {
+  const parsedDate = parseDate(date)
+
+  if (!parsedDate) {
     return 'Data não disponível'
   }
 
