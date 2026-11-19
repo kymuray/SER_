@@ -42,6 +42,11 @@ function parseDateParts(date: unknown) {
     }
   } else if (date instanceof Date) {
     parsedDate = Number.isNaN(date.getTime()) ? null : date
+  } else if (typeof date === 'number') {
+    const candidate = new Date(date)
+    if (!Number.isNaN(candidate.getTime())) {
+      parsedDate = candidate
+    }
   } else if (
     date &&
     typeof date === 'object' &&
@@ -51,6 +56,20 @@ function parseDateParts(date: unknown) {
     const candidate = (date as { toDate: () => Date }).toDate()
     if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
       parsedDate = candidate
+    }
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    ('seconds' in date || '_seconds' in date)
+  ) {
+    const value = date as { seconds?: unknown; _seconds?: unknown }
+    const seconds = Number(value.seconds ?? value._seconds)
+
+    if (Number.isFinite(seconds)) {
+      const candidate = new Date(seconds * 1000)
+      if (!Number.isNaN(candidate.getTime())) {
+        parsedDate = candidate
+      }
     }
   }
 
