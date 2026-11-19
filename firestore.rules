@@ -22,12 +22,11 @@ service cloud.firestore {
     }
 
     function studentOwns(data) {
-      return signedIn()
-        && currentStudentId() == data.id_aluno;
+      return signedIn() && currentStudentId() == data.id_aluno;
     }
 
     match /alunos/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
+      allow read: if (signedIn() && request.auth.uid == uid) || isResponsible();
 
       allow create: if signedIn()
         && request.auth.uid == uid
@@ -76,12 +75,50 @@ service cloud.firestore {
 
     match /horarios_disponiveis/{id} {
       allow read: if signedIn();
-      allow create, update, delete: if isResponsible();
+
+      allow create, delete: if isResponsible();
+
+      allow update: if isResponsible()
+        || (
+          signedIn()
+          && resource.data.disponivel == true
+          && request.resource.data.disponivel == false
+          && request.resource.data.id_agendamento is int
+          && getAfter(
+            /databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)
+          ).data.id_aluno == currentStudentId()
+          && getAfter(
+            /databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)
+          ).data.status == 'agendado'
+        )
+        || (
+          signedIn()
+          && resource.data.id_agendamento is int
+          && get(
+            /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+          ).data.id_aluno == currentStudentId()
+          && request.resource.data.disponivel == true
+          && request.resource.data.id_agendamento == null
+          && getAfter(
+            /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+          ).data.status == 'cancelado'
+        )
+        || (
+          signedIn()
+          && resource.data.id_agendamento is int
+          && get(
+            /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+          ).data.id_aluno == currentStudentId()
+          && request.resource.data.disponivel == true
+          && request.resource.data.id_agendamento == null
+          && getAfter(
+            /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+          ).data.data != resource.data.data
+        );
     }
 
     match /agendamentos/{id} {
       allow get: if isResponsible() || studentOwns(resource.data);
-
       allow list: if isResponsible() || studentOwns(resource.data);
 
       allow create: if isResponsible()
