@@ -14,48 +14,54 @@ import {
 } from '../../services/availabilityService'
 import './MeusAgendamentos.css'
 
-function parseDateParts(date: string | unknown) {
-  let value = ''
+function parseDateParts(date: unknown) {
+  let parsedDate: Date | null = null
 
   if (typeof date === 'string') {
-    value = date.trim()
+    const value = date.trim()
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const candidate = new Date(year, month - 1, day)
+
+      if (
+        candidate.getFullYear() === year &&
+        candidate.getMonth() === month - 1 &&
+        candidate.getDate() === day
+      ) {
+        parsedDate = candidate
+      }
+    }
+
+    if (!parsedDate) {
+      const candidate = new Date(value)
+      if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
+    }
+  } else if (date instanceof Date) {
+    parsedDate = Number.isNaN(date.getTime()) ? null : date
   } else if (
     date &&
     typeof date === 'object' &&
     'toDate' in date &&
     typeof (date as { toDate?: unknown }).toDate === 'function'
   ) {
-    const converted = (date as { toDate: () => Date }).toDate()
-    if (converted instanceof Date && !Number.isNaN(converted.getTime())) {
-      return {
-        year: converted.getFullYear(),
-        month: converted.getMonth() + 1,
-        day: converted.getDate(),
-        parsedDate: converted,
-      }
+    const candidate = (date as { toDate: () => Date }).toDate()
+    if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
+      parsedDate = candidate
     }
   }
 
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!parsedDate) return null
 
-  if (!match) {
-    return null
+  return {
+    year: parsedDate.getFullYear(),
+    month: parsedDate.getMonth() + 1,
+    day: parsedDate.getDate(),
+    parsedDate,
   }
-
-  const year = Number(match[1])
-  const month = Number(match[2])
-  const day = Number(match[3])
-  const parsedDate = new Date(year, month - 1, day)
-
-  if (
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return null
-  }
-
-  return { year, month, day, parsedDate }
 }
 
 function formatDate(date: string | unknown) {
