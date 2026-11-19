@@ -17,7 +17,6 @@ function HeroSection() {
   return (
     <section className="hero-copy" aria-labelledby="home-title">
       <div className="hero-copy__intro">
-        <p className="section-eyebrow">SER • Acolhimento e cuidado</p>
 
         <h1 id="home-title">
           Você não precisa passar por tudo sozinho.
