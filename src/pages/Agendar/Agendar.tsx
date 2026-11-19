@@ -39,7 +39,7 @@ function formatDate(date: string | unknown) {
   // As datas do SER são armazenadas como YYYY-MM-DD.
   // Montar a data pelos números evita interpretações diferentes
   // entre navegador, fuso horário e formato regional.
-  const match = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(normalized)
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
 
   if (!match) {
     return 'Data não disponível'
