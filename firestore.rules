@@ -1,0 +1,89 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isResponsavel() {
+      return signedIn() && request.auth.uid == '7NBwLe6iDrfENDbmgwTqSCtwWyl2';
+    }
+
+    function studentIdForCurrentUser() {
+      return get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno;
+    }
+
+    match /alunos/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && (request.auth.uid == uid || isResponsavel());
+      allow update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    match /responsaveis/{id} {
+      allow read, write: if isResponsavel();
+    }
+
+    match /horarios_disponiveis/{idHorario} {
+      allow read: if signedIn();
+
+      allow create, delete: if isResponsavel();
+
+      allow update: if isResponsavel()
+        || (
+          signedIn()
+          && request.resource.data.id_agendamento == resource.data.id_agendamento
+          && getAfter(/databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)).data.id_aluno == studentIdForCurrentUser()
+          && (
+            getAfter(/databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)).data.status == 'CANCELADO'
+            || getAfter(/databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)).data.status == 'AGENDADO'
+          )
+        )
+        || (
+          signedIn()
+          && request.resource.data.id_agendamento != null
+          && getAfter(/databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)).data.id_aluno == studentIdForCurrentUser()
+          && getAfter(/databases/$(database)/documents/agendamentos/$(request.resource.data.id_agendamento)).data.status == 'AGENDADO'
+          && resource.data.disponivel == true
+          && resource.data.id_agendamento == null
+          && request.resource.data.disponivel == false
+        )
+        || (
+          signedIn()
+          && request.resource.data.id_agendamento == null
+          && resource.data.id_agendamento != null
+          && getAfter(/databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)).data.id_aluno == studentIdForCurrentUser()
+          && getAfter(/databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)).data.status == 'AGENDADO'
+          && request.resource.data.disponivel == true
+        );
+    }
+
+    match /agendamentos/{idAgendamento} {
+      allow read: if isResponsavel()
+        || (signedIn() && resource.data.id_aluno == studentIdForCurrentUser());
+
+      allow create: if signedIn()
+        && request.resource.data.id_agendamento == int(idAgendamento)
+        && request.resource.data.id_aluno == studentIdForCurrentUser()
+        && request.resource.data.status == 'AGENDADO'
+        && getAfter(/databases/$(database)/documents/horarios_disponiveis/$(idAgendamento)).data.id_agendamento == int(idAgendamento)
+        && getAfter(/databases/$(database)/documents/horarios_disponiveis/$(idAgendamento)).data.disponivel == false;
+
+      allow update: if isResponsavel()
+        || (
+          signedIn()
+          && resource.data.id_aluno == studentIdForCurrentUser()
+          && request.resource.data.id_aluno == resource.data.id_aluno
+          && request.resource.data.id_responsavel == resource.data.id_responsavel
+        );
+
+      allow delete: if false;
+    }
+
+    match /atendimentos/{idAtendimento} {
+      allow read, create, update: if isResponsavel();
+      allow delete: if false;
+    }
+  }
+}
