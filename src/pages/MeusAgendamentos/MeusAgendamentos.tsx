@@ -14,16 +14,32 @@ import {
 } from '../../services/availabilityService'
 import './MeusAgendamentos.css'
 
-function formatDate(date: string | unknown) {
-  if (typeof date !== 'string') {
-    return 'Data não disponível'
+function parseDateParts(date: string | unknown) {
+  let value = ''
+
+  if (typeof date === 'string') {
+    value = date.trim()
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    'toDate' in date &&
+    typeof (date as { toDate?: unknown }).toDate === 'function'
+  ) {
+    const converted = (date as { toDate: () => Date }).toDate()
+    if (converted instanceof Date && !Number.isNaN(converted.getTime())) {
+      return {
+        year: converted.getFullYear(),
+        month: converted.getMonth() + 1,
+        day: converted.getDate(),
+        parsedDate: converted,
+      }
+    }
   }
 
-  const normalized = date.trim()
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
 
   if (!match) {
-    return 'Data não disponível'
+    return null
   }
 
   const year = Number(match[1])
@@ -36,10 +52,20 @@ function formatDate(date: string | unknown) {
     parsedDate.getMonth() !== month - 1 ||
     parsedDate.getDate() !== day
   ) {
+    return null
+  }
+
+  return { year, month, day, parsedDate }
+}
+
+function formatDate(date: string | unknown) {
+  const parts = parseDateParts(date)
+
+  if (!parts) {
     return 'Data não disponível'
   }
 
-  return parsedDate.toLocaleDateString('pt-BR', {
+  return parts.parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -59,11 +85,10 @@ function ScheduledAppointmentCard({
   return (
     <div className="appointment-card appointment-card--scheduled">
       <div className="appointment-card__date">
-        <span>{formatDate(appointment.data).split(' de ')[1] ?? 'Data'}</span>
-        <strong>{formatDate(appointment.data).match(/\b\d{2}\b/)?.[0] ?? '--'}</strong>
-        <span>{formatDate(appointment.data).split(',')[0]}</span>
+        <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { weekday: 'long' }) ?? 'Data'}</span>
+        <strong>{parseDateParts(appointment.data)?.day.toString().padStart(2, '0') ?? '--'}</strong>
+        <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { month: 'long' }) ?? 'Data'}</span>
       </div>
-
       <div className="appointment-card__details">
         <p className="appointment-card__status">Agendamento confirmado</p>
         <h3>Escuta SER</h3>
