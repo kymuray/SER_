@@ -7,37 +7,38 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isStudent(uid) {
-      return signedIn() && request.auth.uid == uid;
-    }
-
     function isResponsible() {
       return signedIn()
         && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/responsaveis/1)
         && request.auth.token.email
-          == get(
-            /databases/$(database)/documents/responsaveis/1
-          ).data.email;
+          == get(/databases/$(database)/documents/responsaveis/1).data.email;
     }
 
-    // =========================
-    // ALUNOS
-    // =========================
+    function studentOwns(data) {
+      return signedIn()
+        && get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno
+          == data.id_aluno;
+    }
 
     match /alunos/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
 
-      allow read: if isStudent(uid);
-
-      allow create: if isStudent(uid)
+      allow create: if signedIn()
+        && request.auth.uid == uid
         && request.resource.data.keys().hasAll([
+          'id_aluno',
           'nome_completo',
           'cpf',
+          'senha_hash',
           'nome_preferido',
           'data_criacao'
         ])
         && request.resource.data.keys().hasOnly([
+          'id_aluno',
           'nome_completo',
           'cpf',
+          'senha_hash',
           'nome_preferido',
           'data_criacao'
         ])
@@ -46,66 +47,66 @@ service cloud.firestore {
           == request.resource.data.cpf + '@aluno.ser.app'
         && request.resource.data.data_criacao == request.time;
 
-      allow update: if isStudent(uid)
+      allow update: if signedIn()
+        && request.auth.uid == uid
         && request.resource.data.diff(resource.data)
           .affectedKeys()
           .hasOnly(['nome_preferido'])
         && request.resource.data.nome_preferido is string
-        && request.resource.data.nome_preferido.size() > 0
         && request.resource.data.nome_preferido.size() <= 40;
 
       allow delete: if false;
     }
 
-
-    // =========================
-    // RESPONSÁVEL
-    // =========================
-
     match /responsaveis/{id} {
-
       allow read: if isResponsible();
-
-      allow create, update, delete: if false;
+      allow create: if signedIn()
+        && id == '1'
+        && request.auth.token.email != null
+        && request.resource.data.email == request.auth.token.email;
+      allow update, delete: if false;
     }
-
-
-    // =========================
-    // AGENDAMENTOS
-    // =========================
-
-    match /agendamentos/{id} {
-
-      allow read, write: if signedIn();
-    }
-
-
-    // =========================
-    // HORÁRIOS DISPONÍVEIS
-    // =========================
 
     match /horarios_disponiveis/{id} {
-
       allow read: if signedIn();
-
       allow create, update, delete: if isResponsible();
     }
 
+    match /agendamentos/{id} {
+      allow get: if isResponsible() || studentOwns(resource.data);
 
-    // =========================
-    // ATENDIMENTOS
-    // =========================
+      allow list: if isResponsible()
+        || (
+          signedIn()
+          && request.query.where('id_aluno') == get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno
+        );
 
-    match /atendimentos/{id} {
+      allow create: if isResponsible()
+        || (
+          signedIn()
+          && get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno
+            == request.resource.data.id_aluno
+          && request.resource.data.status == 'agendado'
+        );
 
-      // Atendimento e resumo pertencem ao responsável.
-      allow read, write: if isResponsible();
+      allow update: if isResponsible()
+        || (
+          studentOwns(resource.data)
+          && request.resource.data.id_aluno == resource.data.id_aluno
+          && request.resource.data.id_responsavel == resource.data.id_responsavel
+          && request.resource.data.id_agendamento == resource.data.id_agendamento
+          && request.resource.data.data_criacao == resource.data.data_criacao
+          && request.resource.data.diff(resource.data)
+            .affectedKeys()
+            .hasOnly(['status', 'data', 'horario'])
+        );
+
+      allow delete: if isResponsible();
     }
 
-
-    // =========================
-    // BLOQUEIO PADRÃO
-    // =========================
+    match /atendimentos/{id} {
+      allow read, write: if isResponsible();
+    }
 
     match /{document=**} {
       allow read, write: if false;
