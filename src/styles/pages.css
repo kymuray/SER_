@@ -1232,3 +1232,24 @@
   outline: 2px solid var(--color-primary);
   outline-offset: 3px;
 }
+
+/* A visão semanal funciona como seletor de dia */
+.week-row {
+  width: 100%;
+  align-items: center;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+.week-row:hover {
+  border-color: #e2aab4;
+}
+.week-row:focus-visible {
+  outline: 3px solid rgb(190 25 52 / 22%);
+  outline-offset: 2px;
+}
+.week-row strong {
+  font-weight: 650;
+}

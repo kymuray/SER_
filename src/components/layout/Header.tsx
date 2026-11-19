@@ -22,6 +22,9 @@ function Header() {
             <NavLink className="main-navigation__link" to="/painel-responsavel/agenda">
               Agenda
             </NavLink>
+            <NavLink className="main-navigation__link" to="/painel-responsavel/gerenciamento">
+              Gerenciamento
+            </NavLink>
           </nav>
         ) : (
           <nav className="main-navigation" aria-label="Navegação principal">

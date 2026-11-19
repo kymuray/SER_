@@ -4,7 +4,6 @@ const initialAppointments = [
   { time: '09:00', student: 'Aluno A', status: 'Concluído' },
   { time: '10:00', student: 'Aluno B', status: 'Confirmado' },
   { time: '14:00', student: 'Aluno C', status: 'Confirmado' },
-  { time: '14:30', student: 'Aluno D', status: 'Disponível' },
 ]
 
 const weeklyAvailability = [
@@ -19,6 +18,7 @@ export default function AgendaResponsavel() {
   const [appointments, setAppointments] = useState(initialAppointments)
   const [showAddTime, setShowAddTime] = useState(false)
   const [newTime, setNewTime] = useState('15:00')
+  const [selectedDay, setSelectedDay] = useState('QUI')
 
   function updateStatus(index: number, status: string) {
     setAppointments((current) =>
@@ -50,7 +50,7 @@ export default function AgendaResponsavel() {
         <section className="surface-card day-agenda">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Hoje, 18 de outubro</p>
+              <p className="eyebrow">{weeklyAvailability.find((item) => item.day === selectedDay)?.day} {weeklyAvailability.find((item) => item.day === selectedDay)?.date} de outubro</p>
               <h2>Agenda do dia</h2>
             </div>
             <button
@@ -93,24 +93,29 @@ export default function AgendaResponsavel() {
                   className={`agenda-status ${
                     appointment.status === 'Concluído'
                       ? 'done'
-                      : appointment.status === 'Disponível'
-                        ? 'free'
-                        : ''
+                      : appointment.status === 'Cancelado'
+                        ? 'cancelled'
+                        : appointment.status === 'Ausente'
+                          ? 'absent'
+                          : ''
                   }`}
                 >
                   {appointment.status}
                 </span>
-                <select
-                  aria-label={`Atualizar status de ${appointment.student}`}
-                  value={appointment.status}
-                  onChange={(event) => updateStatus(index, event.target.value)}
-                >
-                  <option>Disponível</option>
-                  <option>Confirmado</option>
-                  <option>Concluído</option>
-                  <option>Ausente</option>
-                  <option>Cancelado</option>
-                </select>
+                {appointment.student !== 'Horário livre' ? (
+                  <select
+                    aria-label={`Atualizar status de ${appointment.student}`}
+                    value={appointment.status}
+                    onChange={(event) => updateStatus(index, event.target.value)}
+                  >
+                    <option>Confirmado</option>
+                    <option>Concluído</option>
+                    <option>Ausente</option>
+                    <option>Cancelado</option>
+                  </select>
+                ) : (
+                  <span className="agenda-free-label">Horário livre</span>
+                )}
               </article>
             ))}
           </div>
@@ -121,15 +126,16 @@ export default function AgendaResponsavel() {
           <h2>Disponibilidade</h2>
 
           {weeklyAvailability.map((item) => (
-            <div
-              className={`week-row ${item.day === 'QUI' ? 'current' : ''}`}
+            <button
+              className={`week-row ${selectedDay === item.day ? 'current' : ''}`}
               key={item.day}
+              type="button"
+              aria-pressed={selectedDay === item.day}
+              onClick={() => setSelectedDay(item.day)}
             >
-              <strong>
-                {item.day} {item.date}
-              </strong>
+              <strong>{item.day} {item.date}</strong>
               <span>{item.hours}</span>
-            </div>
+            </button>
           ))}
 
           <p className="occupancy-label">

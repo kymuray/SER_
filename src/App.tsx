@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 
 import Footer from './components/layout/Footer'
 import Header from './components/layout/Header'
@@ -13,6 +13,7 @@ import StudentAuth from './pages/StudentAuth/StudentAuth'
 import Responsavel from './pages/Responsavel/Responsavel'
 import PainelResponsavel from './pages/Responsavel/PainelResponsavel'
 import AgendaResponsavel from './pages/Responsavel/AgendaResponsavel'
+import GerenciamentoResponsavel from './pages/Responsavel/GerenciamentoResponsavel'
 
 import './styles/pages.css'
 
@@ -41,6 +42,10 @@ function AppLayout() {
           <Route
             path="/painel-responsavel/agenda"
             element={<AgendaResponsavel />}
+          />
+          <Route
+            path="/painel-responsavel/gerenciamento"
+            element={<GerenciamentoResponsavel />}
           />
         </Route>
 
