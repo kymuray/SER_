@@ -214,9 +214,15 @@ export default function Agendar() {
         status: 'agendado',
       })
 
-      const appointment = await import('../../services/appointmentService').then(
-        ({ getAppointment }) => getAppointment(idAgendamento),
-      )
+      const appointment: AppointmentData = {
+        id_agendamento: idAgendamento,
+        data_criacao: null,
+        status: 'agendado',
+        id_responsavel: 1,
+        id_aluno: student.id_aluno,
+        data: selectedDate,
+        horario: time,
+      }
 
       setConfirmed(appointment)
       setAvailableTimes((current) =>
