@@ -29,8 +29,36 @@ function StepsIndicator({ step }: { step: number }) {
   )
 }
 
-function formatDate(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
+function formatDate(date: string | unknown) {
+  if (typeof date !== 'string') {
+    return 'Data não disponível'
+  }
+
+  const normalized = date.trim()
+
+  // As datas do SER são armazenadas como YYYY-MM-DD.
+  // Montar a data pelos números evita interpretações diferentes
+  // entre navegador, fuso horário e formato regional.
+  const match = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(normalized)
+
+  if (!match) {
+    return 'Data não disponível'
+  }
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const parsedDate = new Date(year, month - 1, day)
+
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return 'Data não disponível'
+  }
+
+  return parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
