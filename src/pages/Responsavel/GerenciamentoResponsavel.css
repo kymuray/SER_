@@ -433,13 +433,13 @@
 
 .management-detail-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 28px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
   margin-top: 25px;
 }
 
-.management-detail-grid .management-detail-field:last-child {
-  grid-column: 1 / -1;
+.management-detail-grid .management-detail-field {
+  grid-column: 1;
 }
 
 .management-modal__footer {
@@ -761,8 +761,8 @@
   }
 
   .management-detail-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0 12px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
     margin-top: 17px;
   }
 
