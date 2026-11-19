@@ -6,7 +6,6 @@ import {
   query,
   runTransaction,
   serverTimestamp,
-  updateDoc,
   where,
 } from 'firebase/firestore'
 import { db } from './firebase'
