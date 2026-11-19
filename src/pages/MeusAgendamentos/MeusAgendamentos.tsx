@@ -29,6 +29,7 @@ function formatDate(date: string | unknown) {
   const year = Number(match[1])
   const month = Number(match[2])
   const day = Number(match[3])
+
   const parsedDate = new Date(year, month - 1, day)
 
   if (
@@ -39,12 +40,15 @@ function formatDate(date: string | unknown) {
     return 'Data não disponível'
   }
 
-  return parsedDate.toLocaleDateString('pt-BR', {
+  const weekday = parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
   })
+
+  const monthName = parsedDate.toLocaleDateString('pt-BR', {
+    month: 'long',
+  })
+
+  return weekday + ', ' + String(day).padStart(2, '0') + ' de ' + monthName + ' de ' + year
 }
 
 function ScheduledAppointmentCard({
@@ -59,9 +63,17 @@ function ScheduledAppointmentCard({
   return (
     <div className="appointment-card appointment-card--scheduled">
       <div className="appointment-card__date">
-        <span>{formatDate(appointment.data).split(' de ')[1] ?? 'Data'}</span>
-        <strong>{formatDate(appointment.data).match(/\b\d{2}\b/)?.[0] ?? '--'}</strong>
         <span>{formatDate(appointment.data).split(',')[0]}</span>
+        <strong>{appointment.data.slice(8, 10)}</strong>
+        <span>
+          {new Date(
+            Number(appointment.data.slice(0, 4)),
+            Number(appointment.data.slice(5, 7)) - 1,
+            Number(appointment.data.slice(8, 10)),
+          ).toLocaleDateString('pt-BR', {
+            month: 'long',
+          })}
+        </span>
       </div>
 
       <div className="appointment-card__details">
