@@ -177,6 +177,8 @@ export async function cancelAppointment(idAgendamento: number) {
     where('id_agendamento', '==', idAgendamento),
   )
 
+  const slotSnapshot = await getDocs(slotQuery)
+
   await runTransaction(db, async (transaction) => {
     const appointmentSnapshot = await transaction.get(appointmentRef)
 
@@ -189,8 +191,6 @@ export async function cancelAppointment(idAgendamento: number) {
     if (appointment.status !== 'agendado') {
       throw new Error('Este agendamento não pode ser cancelado.')
     }
-
-    const slotSnapshot = await transaction.get(slotQuery)
 
     transaction.update(appointmentRef, {
       status: 'cancelado',
