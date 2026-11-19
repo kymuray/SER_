@@ -19,7 +19,7 @@ export type AvailableTime = {
 }
 
 function validateHalfHourTime(horario: string) {
-  const match = /^(\\d{2}):(00|30)$/.exec(horario.trim())
+  const match = /^(\d{2}):(00|30)$/.exec(horario.trim())
 
   if (!match) {
     throw new Error('Os horários devem ser definidos em intervalos de 30 minutos.')
