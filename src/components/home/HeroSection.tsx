@@ -1,3 +1,7 @@
+
+import { Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+
 const steps = [
   {
     title: 'Cadastre-se ou Faça o Login',
@@ -14,10 +18,21 @@ const steps = [
 ]
 
 function HeroSection() {
+  const { user, isResponsavel } = useAuth()
+
+  const destinoAgendamento = !user
+    ? '/entrar'
+    : isResponsavel
+      ? '/painel-responsavel'
+      : '/agendar'
+
+  const textoBotao = isResponsavel
+    ? 'Acessar Painel'
+    : 'Agendar Atendimento'
+
   return (
     <section className="hero-copy" aria-labelledby="home-title">
       <div className="hero-copy__intro">
-
         <h1 id="home-title">
           Você não precisa passar por tudo sozinho.
         </h1>
@@ -27,8 +42,8 @@ function HeroSection() {
           acolhido.
         </p>
 
-        <a className="booking-button" href="/agendar">
-          <span>Agendar Atendimento</span>
+        <Link className="booking-button" to={destinoAgendamento}>
+          <span>{textoBotao}</span>
           <svg
             aria-hidden="true"
             focusable="false"
@@ -37,7 +52,7 @@ function HeroSection() {
           >
             <path d="M4.5 12h14M12.5 5.5 19 12l-6.5 6.5" />
           </svg>
-        </a>
+        </Link>
       </div>
 
       <div className="hero-copy__steps">

@@ -111,7 +111,7 @@ export default function StudentAuth() {
         )
       }
 
-      navigate('/agendar')
+      navigate('/')
     } catch (error) {
       setFeedback(getAuthErrorMessage(error))
     } finally {
