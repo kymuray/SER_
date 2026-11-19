@@ -63,7 +63,12 @@ service cloud.firestore {
     }
 
     match /responsaveis/{id} {
-      allow read: if isResponsible();
+      // A responsável precisa conseguir ler o próprio cadastro para que
+      // ensureResponsible() consiga verificar se o documento já existe.
+      // Sem esta permissão, o primeiro acesso falha antes da criação.
+      allow read: if signedIn()
+        && request.auth.uid == '7NBwLe6iDrfENDbmgwTqSCtwWyl2'
+        || isResponsible();
 
       allow create: if signedIn()
         && id == '1'
