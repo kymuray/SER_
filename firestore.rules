@@ -111,9 +111,17 @@ service cloud.firestore {
           ).data.id_aluno == currentStudentId()
           && request.resource.data.disponivel == true
           && request.resource.data.id_agendamento == null
-          && getAfter(
-            /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
-          ).data.data != resource.data.data
+          && (
+            getAfter(
+              /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+            ).data.status == 'cancelado'
+            || getAfter(
+              /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+            ).data.data != resource.data.data
+            || getAfter(
+              /databases/$(database)/documents/agendamentos/$(resource.data.id_agendamento)
+            ).data.horario != resource.data.horario
+          )
         );
     }
 
