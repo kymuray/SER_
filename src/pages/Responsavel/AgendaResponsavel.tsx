@@ -81,12 +81,12 @@ export default function AgendaResponsavel() {
   }, [selectedDate])
 
   const agendaItems = useMemo<AgendaItem[]>(() => {
-    const booked = appointments.map((appointment) => ({
+    const booked: AgendaItem[] = appointments.map((appointment) => ({
       appointment,
       student: students[appointment.id_aluno] || 'Aluno',
     }))
 
-    const free = slots
+    const free: AgendaItem[] = slots
       .filter(
         (slot) =>
           slot.disponivel &&
