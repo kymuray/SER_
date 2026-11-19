@@ -385,7 +385,7 @@ export default function GerenciamentoResponsavel() {
                 <div>
                   <p className="eyebrow">Atendimento</p>
                   <h2 id="management-modal-title">{selected.student}</h2>
-                  <p>{formatDate(selected.appointment.data)} às {selected.appointment.horario}</p>
+                  <p>{formatDate(selected.appointment.data).full} às {selected.appointment.horario}</p>
                 </div>
               </div>
             </header>
