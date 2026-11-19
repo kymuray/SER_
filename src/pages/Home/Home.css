@@ -370,3 +370,7 @@
     transform: none;
   }
 }
+
+.hero-copy__steps {
+  margin-top: 64px;
+}
