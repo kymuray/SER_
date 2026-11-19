@@ -10,7 +10,7 @@ export async function ensureResponsible(email: string) {
   if (!snapshot.exists()) {
     await setDoc(ref, {
       id_responsavel: RESPONSAVEL_ID,
-      email: email.trim().toLowerCase(),
+      email: email.trim(),
       senha_hash: 'GERENCIADA_PELO_FIREBASE_AUTH',
     })
   }
