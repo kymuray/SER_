@@ -15,10 +15,15 @@ service cloud.firestore {
           == get(/databases/$(database)/documents/responsaveis/1).data.email;
     }
 
+    function currentStudentId() {
+      return get(
+        /databases/$(database)/documents/alunos/$(request.auth.uid)
+      ).data.id_aluno;
+    }
+
     function studentOwns(data) {
       return signedIn()
-        && get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno
-          == data.id_aluno;
+        && currentStudentId() == data.id_aluno;
     }
 
     match /alunos/{uid} {
@@ -60,10 +65,12 @@ service cloud.firestore {
 
     match /responsaveis/{id} {
       allow read: if isResponsible();
+
       allow create: if signedIn()
         && id == '1'
         && request.auth.token.email != null
         && request.resource.data.email == request.auth.token.email;
+
       allow update, delete: if false;
     }
 
@@ -75,17 +82,12 @@ service cloud.firestore {
     match /agendamentos/{id} {
       allow get: if isResponsible() || studentOwns(resource.data);
 
-      allow list: if isResponsible()
-        || (
-          signedIn()
-          && request.query.where('id_aluno') == get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno
-        );
+      allow list: if isResponsible() || studentOwns(resource.data);
 
       allow create: if isResponsible()
         || (
           signedIn()
-          && get(/databases/$(database)/documents/alunos/$(request.auth.uid)).data.id_aluno
-            == request.resource.data.id_aluno
+          && currentStudentId() == request.resource.data.id_aluno
           && request.resource.data.status == 'agendado'
         );
 
