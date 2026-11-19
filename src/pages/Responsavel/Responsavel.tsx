@@ -6,6 +6,7 @@ import {
   signOut,
 } from 'firebase/auth'
 import { auth } from '../../services/firebase'
+import { ensureResponsible } from '../../services/responsibleService'
 
 const RESPONSAVEL_UID = '7NBwLe6iDrfENDbmgwTqSCtwWyl2'
 
@@ -40,6 +41,7 @@ export default function Responsavel() {
         return
       }
 
+      await ensureResponsible(credential.user.email || email.trim())
       navigate('/painel-responsavel')
     } catch (error) {
       const code = (error as { code?: string })?.code
