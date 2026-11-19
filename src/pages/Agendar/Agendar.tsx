@@ -1,17 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { saveAppointment } from '../../utils/appointments'
+import { useAuth } from '../../contexts/AuthContext'
+import { getStudent } from '../../services/studentService'
+import {
+  createAppointment,
+  type AppointmentData,
+} from '../../services/appointmentService'
+import {
+  getAvailableTimes,
+  type AvailableTime,
+} from '../../services/availabilityService'
 
 const weekdays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
-
-const availableTimes = [
-  '09:00',
-  '09:30',
-  '10:30',
-  '14:00',
-  '14:30',
-  '16:00',
-]
 
 function StepsIndicator({ step }: { step: number }) {
   return (
@@ -29,7 +29,16 @@ function StepsIndicator({ step }: { step: number }) {
   )
 }
 
+function formatDate(date: string) {
+  return new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
+
 export default function Agendar() {
+  const { user } = useAuth()
   const [month, setMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   )
@@ -37,10 +46,51 @@ export default function Agendar() {
   const [time, setTime] = useState('')
   const [step, setStep] = useState(1)
   const [showConfirmation, setShowConfirmation] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
+  const [confirmed, setConfirmed] = useState<AppointmentData | null>(null)
+  const [availableTimes, setAvailableTimes] = useState<AvailableTime[]>([])
+  const [loadingTimes, setLoadingTimes] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const year = month.getFullYear()
   const monthIndex = month.getMonth()
+
+  useEffect(() => {
+    let active = true
+
+    async function loadTimes() {
+      setLoadingTimes(true)
+      setError('')
+
+      try {
+        const data = await getAvailableTimes()
+        if (active) setAvailableTimes(data)
+      } catch {
+        if (active) setError('Não foi possível carregar os horários disponíveis.')
+      } finally {
+        if (active) setLoadingTimes(false)
+      }
+    }
+
+    loadTimes()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const slotsByDate = useMemo(() => {
+    const map = new Map<string, AvailableTime[]>()
+
+    for (const slot of availableTimes) {
+      const current = map.get(slot.data) ?? []
+      current.push(slot)
+      map.set(slot.data, current)
+    }
+
+    return map
+  }, [availableTimes])
+
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
   const firstWeekday = new Date(year, monthIndex, 1).getDay()
 
@@ -49,19 +99,18 @@ export default function Agendar() {
     year: 'numeric',
   })
 
-  const dateLabel = day
-    ? new Date(year, monthIndex, day).toLocaleDateString('pt-BR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-      })
+  const selectedDate = day
+    ? `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     : ''
 
-  const availableDays = Array.from(
-    { length: daysInMonth },
-    (_, index) => index + 1,
-  ).filter((date) =>
-    [2, 3, 4].includes(new Date(year, monthIndex, date).getDay()),
+  const dateLabel = selectedDate ? formatDate(selectedDate) : ''
+
+  const availableDays = new Set(
+    availableTimes
+      .filter((slot) => slot.disponivel)
+      .map((slot) => slot.data)
+      .filter((date) => date.startsWith(`${year}-${String(monthIndex + 1).padStart(2, '0')}`))
+      .map((date) => Number(date.slice(-2))),
   )
 
   function changeMonth(offset: number) {
@@ -70,6 +119,7 @@ export default function Agendar() {
     setTime('')
     setStep(1)
     setShowConfirmation(false)
+    setError('')
   }
 
   function selectDay(selectedDay: number) {
@@ -77,44 +127,63 @@ export default function Agendar() {
     setTime('')
     setStep(2)
     setShowConfirmation(false)
+    setError('')
   }
 
   function selectTime(selectedTime: string) {
     setTime(selectedTime)
     setStep(3)
     setShowConfirmation(false)
+    setError('')
   }
 
-  function isTimeAvailable(selectedTime: string) {
-    if (!day) return false
+  async function confirmAppointment() {
+    if (!user || !day || !time || !selectedDate) return
 
-    const selectedWeekday = new Date(year, monthIndex, day).getDay()
-    const hour = Number(selectedTime.slice(0, 2))
+    setLoading(true)
+    setError('')
 
-    // Terças e quartas pela manhã; quintas à tarde.
-    if (selectedWeekday === 4) return hour >= 12
-    return hour < 12
-  }
+    try {
+      const student = await getStudent(user.uid)
 
-  function confirmAppointment() {
-    if (!day || !time) return
+      if (!student?.id_aluno) {
+        throw new Error('Não foi possível identificar o aluno.')
+      }
 
-    const selectedDate = [
-      year,
-      String(monthIndex + 1).padStart(2, '0'),
-      String(day).padStart(2, '0'),
-    ].join('-')
+      const slot = slotsByDate
+        .get(selectedDate)
+        ?.find((item) => item.horario === time && item.disponivel)
 
-    saveAppointment({
-      date: selectedDate,
-      time,
-      status: 'Agendamento confirmado',
-      title: 'Escuta SER',
-      location: 'Sala do SER',
-      durationMinutes: 30,
-    })
+      if (!slot) {
+        throw new Error('Este horário não está mais disponível.')
+      }
 
-    setConfirmed(true)
+      const idAgendamento = await createAppointment({
+        id_horario: slot.id_horario,
+        id_responsavel: 1,
+        id_aluno: student.id_aluno,
+        data: selectedDate,
+        horario: time,
+        status: 'agendado',
+      })
+
+      const appointment = await import('../../services/appointmentService').then(
+        ({ getAppointment }) => getAppointment(idAgendamento),
+      )
+
+      setConfirmed(appointment)
+      setAvailableTimes((current) =>
+        current.map((item) =>
+          item.id_horario === slot.id_horario
+            ? { ...item, disponivel: false, id_agendamento: idAgendamento }
+            : item,
+        ),
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível confirmar o agendamento.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (confirmed) {
@@ -123,28 +192,25 @@ export default function Agendar() {
         <StepsIndicator step={3} />
 
         <section className="confirmation-card">
-          <div className="success-mark" aria-hidden="true">
-            ✓
-          </div>
-
+          <div className="success-mark" aria-hidden="true">✓</div>
           <span className="status-pill">Agendamento confirmado</span>
 
           <h1>Seu momento está reservado.</h1>
 
           <p>
-            Você poderá consultar, remarcar ou cancelar este agendamento quando
-            precisar.
+            Seu agendamento foi salvo no sistema. Você poderá consultar,
+            remarcar ou cancelar quando precisar.
           </p>
 
           <div className="booking-summary">
             <div>
               <small>Data</small>
-              <strong>{dateLabel}</strong>
+              <strong>{formatDate(confirmed.data)}</strong>
             </div>
 
             <div>
               <small>Horário</small>
-              <strong>{time} — 30 minutos</strong>
+              <strong>{confirmed.horario} — 30 minutos</strong>
             </div>
 
             <div>
@@ -167,42 +233,25 @@ export default function Agendar() {
         <p className="eyebrow">Programa SER</p>
         <h1>Agendar escuta</h1>
         <p className="page-lead">
-          Escolha uma data e um horário disponível para seu atendimento de
-          acolhimento.
+          Escolha uma data e um horário disponível para seu atendimento de acolhimento.
         </p>
       </header>
 
       <StepsIndicator step={step} />
 
+      {error && <p className="form-feedback" role="alert">{error}</p>}
+
       <div className="booking-grid">
         <section className="surface-card calendar-card">
           <div className="calendar-head">
-            <button
-              className="icon-button"
-              type="button"
-              aria-label="Mês anterior"
-              onClick={() => changeMonth(-1)}
-            >
-              ‹
-            </button>
-
+            <button className="icon-button" type="button" aria-label="Mês anterior" onClick={() => changeMonth(-1)}>‹</button>
             <h2>{monthName}</h2>
-
-            <button
-              className="icon-button"
-              type="button"
-              aria-label="Próximo mês"
-              onClick={() => changeMonth(1)}
-            >
-              ›
-            </button>
+            <button className="icon-button" type="button" aria-label="Próximo mês" onClick={() => changeMonth(1)}>›</button>
           </div>
 
           <div className="calendar-grid">
             {weekdays.map((weekday, index) => (
-              <span className="weekday" key={`${weekday}-${index}`}>
-                {weekday}
-              </span>
+              <span className="weekday" key={`${weekday}-${index}`}>{weekday}</span>
             ))}
 
             {Array.from({ length: firstWeekday }, (_, index) => (
@@ -215,19 +264,18 @@ export default function Agendar() {
               const today = new Date()
               today.setHours(0, 0, 0, 0)
 
-              const enabled =
-                availableDays.includes(calendarDay) && candidate >= today
+              const dateKey = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(calendarDay).padStart(2, '0')}`
+              const enabled = candidate >= today && availableDays.has(calendarDay)
 
               return (
                 <button
-                  className={`day-button ${
-                    day === calendarDay ? 'selected' : ''
-                  }`}
-                  disabled={!enabled}
+                  className={`day-button ${day === calendarDay ? 'selected' : ''}`}
+                  disabled={!enabled || loadingTimes}
                   key={calendarDay}
                   type="button"
                   aria-pressed={day === calendarDay}
                   onClick={() => selectDay(calendarDay)}
+                  title={enabled ? 'Horários disponíveis' : 'Sem horários disponíveis'}
                 >
                   {calendarDay}
                 </button>
@@ -236,89 +284,79 @@ export default function Agendar() {
           </div>
 
           <div className="calendar-legend">
-            <span>
-              <i />
-              Disponível
-            </span>
-            <span>
-              <i className="legend-selected" />
-              Selecionado
-            </span>
+            <span><i /> Disponível</span>
+            <span><i className="legend-selected" /> Selecionado</span>
           </div>
 
           <p className="availability-note">
-            Os horários ilustrativos seguem a disponibilidade semanal
-            informada: terças e quartas pela manhã e quintas à tarde.
+            Os horários exibidos são cadastrados pela responsável e possuem duração fixa de 30 minutos.
           </p>
         </section>
 
         <section className="surface-card time-card">
-          <p className="eyebrow">
-            {day ? dateLabel : 'Selecione uma data'}
-          </p>
+          <p className="eyebrow">{day ? dateLabel : 'Selecione uma data'}</p>
 
-          <h2>
-            {day
-              ? `${day} de ${monthName.split(' de ')[0]}`
-              : 'Horários disponíveis'}
-          </h2>
+          <h2>{day ? `${day} de ${monthName.split(' de ')[0]}` : 'Horários disponíveis'}</h2>
 
           <p className="field-hint">
-            {day
-              ? 'Selecione um horário disponível:'
-              : 'Escolha primeiro um dia destacado no calendário.'}
+            {loadingTimes
+              ? 'Carregando horários...'
+              : day
+                ? 'Selecione um horário disponível:'
+                : 'Escolha primeiro uma data com horários disponíveis.'}
           </p>
 
           <div className="time-options">
-            {availableTimes.map((availableTime) => (
+            {(slotsByDate.get(selectedDate) ?? []).map((slot) => (
               <button
-                className={time === availableTime ? 'chosen' : ''}
-                disabled={!day || !isTimeAvailable(availableTime)}
-                key={availableTime}
+                className={time === slot.horario ? 'chosen' : ''}
+                disabled={!day || !slot.disponivel || loading}
+                key={slot.id_horario}
                 type="button"
-                aria-pressed={time === availableTime}
-                onClick={() => selectTime(availableTime)}
+                aria-pressed={time === slot.horario}
+                onClick={() => selectTime(slot.horario)}
               >
-                {availableTime}
+                {slot.horario}
               </button>
             ))}
           </div>
 
+          {day && !(slotsByDate.get(selectedDate) ?? []).length && (
+            <p className="field-hint">Não há horários disponíveis para esta data.</p>
+          )}
+
           {day && time && (
             <div className="selected-slot">
-              Horário escolhido: <strong>{time}</strong>
+              Horário escolhido: <strong>{time}</strong> — 30 minutos
             </div>
           )}
 
           <button
             className="button button--primary button--wide"
-            disabled={!day || !time}
+            disabled={!day || !time || loading}
             type="button"
             onClick={() => setShowConfirmation(true)}
           >
-            Continuar
+            {loading ? 'Salvando...' : 'Continuar'}
           </button>
 
           {showConfirmation && day && time && (
             <div className="confirm-inline">
               <p>
-                Confirme sua escolha:{' '}
-                <strong>
-                  {dateLabel}, às {time}
-                </strong>
-                .
+                Confirme sua escolha: <strong>{dateLabel}, às {time}</strong>.
               </p>
 
               <p className="field-hint">
-                Confira os dados antes de confirmar o agendamento.
+                O horário será reservado no Firestore após a confirmação.
               </p>
 
               <button
                 className="button button--primary button--wide"
                 type="button"
+                disabled={loading}
                 onClick={confirmAppointment}
               >
-                Confirmar agendamento
+                {loading ? 'Confirmando...' : 'Confirmar agendamento'}
               </button>
             </div>
           )}
@@ -326,8 +364,7 @@ export default function Agendar() {
       </div>
 
       <p className="booking-footnote">
-        Já possui um horário?{' '}
-        <Link to="/agendamentos">Consulte seus agendamentos</Link>.
+        Já possui um horário? <Link to="/agendamentos">Consulte seus agendamentos</Link>.
       </p>
     </main>
   )
