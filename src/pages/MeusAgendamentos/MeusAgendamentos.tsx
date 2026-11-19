@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import {
   cancelAppointment,
   getAppointmentsByStudent,
+  getReservedTimeByAppointment,
   rescheduleAppointment,
   type AppointmentData,
 } from '../../services/appointmentService'
@@ -188,7 +189,30 @@ export default function MeusAgendamentos() {
       }
 
       const data = await getAppointmentsByStudent(student.id_aluno)
-      setAppointments(data.filter((item) => item.status === 'agendado'))
+      const activeAppointments = data.filter((item) => item.status === 'agendado')
+
+      const normalizedAppointments = await Promise.all(
+        activeAppointments.map(async (appointment) => {
+          if (parseDateParts(appointment.data)) {
+            return appointment
+          }
+
+          const reservedSlot = await getReservedTimeByAppointment(
+            appointment.id_agendamento,
+          )
+
+          if (reservedSlot?.data) {
+            return {
+              ...appointment,
+              data: String(reservedSlot.data),
+            }
+          }
+
+          return appointment
+        }),
+      )
+
+      setAppointments(normalizedAppointments)
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : 'Não foi possível carregar seus agendamentos.')
     } finally {
