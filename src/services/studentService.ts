@@ -1,4 +1,4 @@
-﻿import {
+import {
   collection,
   doc,
   getDoc,
@@ -7,6 +7,7 @@
   setDoc,
   updateDoc,
   where,
+  serverTimestamp,
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -28,6 +29,7 @@ export async function createStudent(
     cpf: data.cpf.replace(/\D/g, ''),
     senha_hash: 'GERENCIADA_PELO_FIREBASE_AUTH',
     nome_preferido: data.nome_preferido.trim(),
+    data_criacao: serverTimestamp(),
   })
 }
 
@@ -46,12 +48,19 @@ export async function getStudentsByIds(ids: number[]) {
   if (ids.length === 0) return []
 
   const uniqueIds = [...new Set(ids)]
-  const students = [] as Array<{ id_aluno: number; nome_completo: string; nome_preferido?: string }>
+  const students = [] as Array<{
+    id_aluno: number
+    nome_completo: string
+    nome_preferido?: string
+  }>
 
   for (let index = 0; index < uniqueIds.length; index += 30) {
     const batch = uniqueIds.slice(index, index + 30)
     const snapshot = await getDocs(
-      query(collection(db, 'alunos'), where('id_aluno', 'in', batch)),
+      query(
+        collection(db, 'alunos'),
+        where('id_aluno', 'in', batch),
+      ),
     )
 
     snapshot.docs.forEach((student) => {
