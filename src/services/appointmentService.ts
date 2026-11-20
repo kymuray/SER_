@@ -172,18 +172,6 @@ export async function cancelAppointment(idAgendamento: number) {
     String(idAgendamento),
   )
 
-  const appointmentSnapshot = await getDoc(appointmentRef)
-
-  if (!appointmentSnapshot.exists()) {
-    throw new Error('Agendamento não encontrado.')
-  }
-
-  const appointment = appointmentSnapshot.data()
-
-  if (appointment.status !== 'agendado') {
-    throw new Error('Este agendamento não pode ser cancelado.')
-  }
-
   const slotQuery = query(
     collection(db, 'horarios_disponiveis'),
     where('id_agendamento', '==', idAgendamento),
@@ -192,13 +180,15 @@ export async function cancelAppointment(idAgendamento: number) {
   const slotSnapshot = await getDocs(slotQuery)
 
   await runTransaction(db, async (transaction) => {
-    const appointmentCurrent = await transaction.get(appointmentRef)
+    const appointmentSnapshot = await transaction.get(appointmentRef)
 
-    if (!appointmentCurrent.exists()) {
+    if (!appointmentSnapshot.exists()) {
       throw new Error('Agendamento não encontrado.')
     }
 
-    if (appointmentCurrent.data().status !== 'agendado') {
+    const appointment = appointmentSnapshot.data()
+
+    if (appointment.status !== 'agendado') {
       throw new Error('Este agendamento não pode ser cancelado.')
     }
 
@@ -212,6 +202,7 @@ export async function cancelAppointment(idAgendamento: number) {
         'horarios_disponiveis',
         slotDoc.id,
       )
+
       transaction.update(slotRef, {
         disponivel: true,
         id_agendamento: null,
@@ -219,7 +210,6 @@ export async function cancelAppointment(idAgendamento: number) {
     }
   })
 }
-
 export async function rescheduleAppointment(
   idAgendamento: number,
   data: string,

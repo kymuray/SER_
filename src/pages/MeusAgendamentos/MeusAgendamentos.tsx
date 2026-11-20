@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import {
   cancelAppointment,
   getAppointmentsByStudent,
+  getReservedTimeByAppointment,
   rescheduleAppointment,
   type AppointmentData,
 } from '../../services/appointmentService'
@@ -14,8 +15,83 @@ import {
 } from '../../services/availabilityService'
 import './MeusAgendamentos.css'
 
-function formatDate(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
+function parseDateParts(date: unknown) {
+  let parsedDate: Date | null = null
+
+  if (typeof date === 'string') {
+    const value = date.trim()
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const candidate = new Date(year, month - 1, day)
+
+      if (
+        candidate.getFullYear() === year &&
+        candidate.getMonth() === month - 1 &&
+        candidate.getDate() === day
+      ) {
+        parsedDate = candidate
+      }
+    }
+
+    if (!parsedDate) {
+      const candidate = new Date(value)
+      if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
+    }
+  } else if (date instanceof Date) {
+    parsedDate = Number.isNaN(date.getTime()) ? null : date
+  } else if (typeof date === 'number') {
+    const candidate = new Date(date)
+    if (!Number.isNaN(candidate.getTime())) {
+      parsedDate = candidate
+    }
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    'toDate' in date &&
+    typeof (date as { toDate?: unknown }).toDate === 'function'
+  ) {
+    const candidate = (date as { toDate: () => Date }).toDate()
+    if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
+      parsedDate = candidate
+    }
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    ('seconds' in date || '_seconds' in date)
+  ) {
+    const value = date as { seconds?: unknown; _seconds?: unknown }
+    const seconds = Number(value.seconds ?? value._seconds)
+
+    if (Number.isFinite(seconds)) {
+      const candidate = new Date(seconds * 1000)
+      if (!Number.isNaN(candidate.getTime())) {
+        parsedDate = candidate
+      }
+    }
+  }
+
+  if (!parsedDate) return null
+
+  return {
+    year: parsedDate.getFullYear(),
+    month: parsedDate.getMonth() + 1,
+    day: parsedDate.getDate(),
+    parsedDate,
+  }
+}
+
+function formatDate(date: string | unknown) {
+  const parts = parseDateParts(date)
+
+  if (!parts) {
+    return 'Data não disponível'
+  }
+
+  return parts.parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -35,11 +111,10 @@ function ScheduledAppointmentCard({
   return (
     <div className="appointment-card appointment-card--scheduled">
       <div className="appointment-card__date">
-        <span>{new Date(`${appointment.data}T12:00:00`).toLocaleDateString('pt-BR', { month: 'long' })}</span>
-        <strong>{new Date(`${appointment.data}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit' })}</strong>
-        <span>{new Date(`${appointment.data}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long' })}</span>
+        <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { weekday: 'long' }) ?? 'Data'}</span>
+        <strong>{parseDateParts(appointment.data)?.day.toString().padStart(2, '0') ?? '--'}</strong>
+        <span>{parseDateParts(appointment.data)?.parsedDate.toLocaleDateString('pt-BR', { month: 'long' }) ?? 'Data'}</span>
       </div>
-
       <div className="appointment-card__details">
         <p className="appointment-card__status">Agendamento confirmado</p>
         <h3>Escuta SER</h3>
@@ -99,6 +174,7 @@ export default function MeusAgendamentos() {
   const [availableTimes, setAvailableTimes] = useState<AvailableTime[]>([])
   const [newSlotId, setNewSlotId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  const [canceling, setCanceling] = useState<AppointmentData | null>(null)
 
   async function loadAppointments() {
     if (!user) return
@@ -114,7 +190,30 @@ export default function MeusAgendamentos() {
       }
 
       const data = await getAppointmentsByStudent(student.id_aluno)
-      setAppointments(data.filter((item) => item.status === 'agendado'))
+      const activeAppointments = data.filter((item) => item.status === 'agendado')
+
+      const normalizedAppointments = await Promise.all(
+        activeAppointments.map(async (appointment) => {
+          if (parseDateParts(appointment.data)) {
+            return appointment
+          }
+
+          const reservedSlot = await getReservedTimeByAppointment(
+            appointment.id_agendamento,
+          )
+
+          if (reservedSlot?.data) {
+            return {
+              ...appointment,
+              data: String(reservedSlot.data),
+            }
+          }
+
+          return appointment
+        }),
+      )
+
+      setAppointments(normalizedAppointments)
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : 'Não foi possível carregar seus agendamentos.')
     } finally {
@@ -174,12 +273,6 @@ export default function MeusAgendamentos() {
   }
 
   async function handleCancel(appointment: AppointmentData) {
-    const confirmed = window.confirm(
-      'Deseja realmente cancelar este agendamento?',
-    )
-
-    if (!confirmed) return
-
     setSaving(true)
     setFeedback('')
 
@@ -230,12 +323,62 @@ export default function MeusAgendamentos() {
           <ScheduledAppointmentCard
             appointment={nextAppointment}
             onReschedule={() => openReschedule(nextAppointment)}
-            onCancel={() => handleCancel(nextAppointment)}
+            onCancel={() => setCanceling(nextAppointment)}
           />
         ) : (
           <EmptyAppointmentCard />
         )}
       </section>
+
+      {canceling && (
+        <div
+          className="management-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !saving) setCanceling(null)
+          }}
+        >
+          <section className="management-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+            <header className="management-modal__header">
+              <div>
+                <p className="eyebrow">Cancelar agendamento</p>
+                <h2 id="cancel-title">Deseja cancelar este atendimento?</h2>
+              </div>
+            </header>
+
+            <div className="management-detail-content">
+              <p>
+                Seu atendimento de <strong>{formatDate(canceling.data)}</strong>, às <strong>{canceling.horario}</strong>, será cancelado.
+              </p>
+              <p className="field-hint">
+                Essa ação libera o horário para outro agendamento.
+              </p>
+
+              <div className="management-modal__footer">
+                <button
+                  type="button"
+                  className="management-secondary-button"
+                  onClick={() => setCanceling(null)}
+                  disabled={saving}
+                >
+                  Voltar
+                </button>
+                <button
+                  type="button"
+                  className="management-primary-button management-primary-button--danger"
+                  onClick={async () => {
+                    await handleCancel(canceling)
+                    setCanceling(null)
+                  }}
+                  disabled={saving}
+                >
+                  {saving ? 'Cancelando...' : 'Sim, cancelar'}
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
 
       {rescheduling && (
         <div

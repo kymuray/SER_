@@ -29,8 +29,55 @@ function StepsIndicator({ step }: { step: number }) {
   )
 }
 
-function formatDate(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
+function parseDate(date: unknown) {
+  if (typeof date === 'string') {
+    const normalized = date.trim()
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized)
+
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const parsed = new Date(year, month - 1, day)
+
+      if (
+        parsed.getFullYear() === year &&
+        parsed.getMonth() === month - 1 &&
+        parsed.getDate() === day
+      ) {
+        return parsed
+      }
+    }
+
+    const parsed = new Date(normalized)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
+
+  if (date instanceof Date) {
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+
+  if (
+    date &&
+    typeof date === 'object' &&
+    'toDate' in date &&
+    typeof (date as { toDate?: unknown }).toDate === 'function'
+  ) {
+    const parsed = (date as { toDate: () => Date }).toDate()
+    return parsed instanceof Date && !Number.isNaN(parsed.getTime()) ? parsed : null
+  }
+
+  return null
+}
+
+function formatDate(date: unknown) {
+  const parsedDate = parseDate(date)
+
+  if (!parsedDate) {
+    return 'Data não disponível'
+  }
+
+  return parsedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -167,9 +214,15 @@ export default function Agendar() {
         status: 'agendado',
       })
 
-      const appointment = await import('../../services/appointmentService').then(
-        ({ getAppointment }) => getAppointment(idAgendamento),
-      )
+      const appointment: AppointmentData = {
+        id_agendamento: idAgendamento,
+        data_criacao: null,
+        status: 'agendado',
+        id_responsavel: 1,
+        id_aluno: student.id_aluno,
+        data: selectedDate,
+        horario: time,
+      }
 
       setConfirmed(appointment)
       setAvailableTimes((current) =>
@@ -345,7 +398,7 @@ export default function Agendar() {
               </p>
 
               <p className="field-hint">
-                O horário será reservado no Firestore após a confirmação.
+                O horário será reservado após a confirmação.
               </p>
 
               <button
