@@ -32,8 +32,6 @@ const filters: FilterStatus[] = [
 ]
 
 function parseDateParts(date: unknown) {
-  let parsedDate: Date | null = null
-
   if (typeof date === 'string') {
     const value = date.trim()
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
@@ -49,30 +47,36 @@ function parseDateParts(date: unknown) {
         candidate.getMonth() === month - 1 &&
         candidate.getDate() === day
       ) {
-        parsedDate = candidate
+        return candidate
       }
     }
 
-    if (!parsedDate) {
-      const candidate = new Date(value)
-      if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
-    }
-  } else if (date instanceof Date) {
-    parsedDate = Number.isNaN(date.getTime()) ? null : date
-  } else if (typeof date === 'number') {
+    const candidate = new Date(value)
+    return Number.isNaN(candidate.getTime()) ? null : candidate
+  }
+
+  if (date instanceof Date) {
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+
+  if (typeof date === 'number') {
     const candidate = new Date(date)
-    if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
-  } else if (
+    return Number.isNaN(candidate.getTime()) ? null : candidate
+  }
+
+  if (
     date &&
     typeof date === 'object' &&
     'toDate' in date &&
     typeof (date as { toDate?: unknown }).toDate === 'function'
   ) {
     const candidate = (date as { toDate: () => Date }).toDate()
-    if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
-      parsedDate = candidate
-    }
-  } else if (
+    return candidate instanceof Date && !Number.isNaN(candidate.getTime())
+      ? candidate
+      : null
+  }
+
+  if (
     date &&
     typeof date === 'object' &&
     ('seconds' in date || '_seconds' in date)
@@ -82,14 +86,62 @@ function parseDateParts(date: unknown) {
 
     if (Number.isFinite(seconds)) {
       const candidate = new Date(seconds * 1000)
-      if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
+      return Number.isNaN(candidate.getTime()) ? null : candidate
     }
   }
 
-  return parsedDate
+  return null
 }
 
 function formatDate(date: unknown) {
+  if (typeof date === 'string') {
+    const value = date.trim()
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const monthNames = [
+        'janeiro',
+        'fevereiro',
+        'março',
+        'abril',
+        'maio',
+        'junho',
+        'julho',
+        'agosto',
+        'setembro',
+        'outubro',
+        'novembro',
+        'dezembro',
+      ]
+      const weekdayNames = [
+        'domingo',
+        'segunda-feira',
+        'terça-feira',
+        'quarta-feira',
+        'quinta-feira',
+        'sexta-feira',
+        'sábado',
+      ]
+      const candidate = new Date(year, month - 1, day)
+
+      if (
+        candidate.getFullYear() === year &&
+        candidate.getMonth() === month - 1 &&
+        candidate.getDate() === day
+      ) {
+        return {
+          day: String(day).padStart(2, '0'),
+          month: monthNames[month - 1],
+          weekday: weekdayNames[candidate.getDay()],
+          full: `${String(day).padStart(2, '0')} de ${monthNames[month - 1]} de ${year}`,
+        }
+      }
+    }
+  }
+
   const parsedDate = parseDateParts(date)
 
   if (!parsedDate) {
