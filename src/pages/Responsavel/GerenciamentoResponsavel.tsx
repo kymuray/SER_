@@ -36,7 +36,7 @@ function parseDateParts(date: unknown) {
 
   if (typeof date === 'string') {
     const value = date.trim()
-    const match = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value)
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
 
     if (match) {
       const year = Number(match[1])
