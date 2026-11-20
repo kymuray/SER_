@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import './GerenciamentoResponsavel.css'
+import { getAppointmentsByResponsible, type AppointmentData } from '../../services/appointmentService'
 import {
-  getAppointmentsByResponsible,
-  type AppointmentData,
-} from '../../services/appointmentService'
-import {
-  completeAttendance,
-  createAttendance,
   getAttendanceByAppointment,
+  createAttendance,
   updateAttendance,
 } from '../../services/attendanceService'
 import { getStudentsByIds } from '../../services/studentService'
 import { RESPONSAVEL_ID } from '../../services/responsibleService'
+import Icon from '../../components/layout/Icon'
 
 type FilterStatus = 'Concluídos' | 'Ausentes' | 'Cancelados' | 'Próximos'
 
@@ -158,6 +155,7 @@ export default function GerenciamentoResponsavel() {
   const [selected, setSelected] = useState<ManagementAppointment | null>(null)
   const [summaryDraft, setSummaryDraft] = useState('')
   const [editingSummary, setEditingSummary] = useState(false)
+  const [activeTab, setActiveTab] = useState<'details' | 'summary'>('details')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [feedback, setFeedback] = useState('')
@@ -222,6 +220,7 @@ export default function GerenciamentoResponsavel() {
     setSelected(item)
     setSummaryDraft(item.summary)
     setEditingSummary(edit)
+    setActiveTab(edit ? 'summary' : 'details')
     setFeedback('')
   }
 
@@ -248,14 +247,14 @@ export default function GerenciamentoResponsavel() {
         )
       }
 
-      await completeAttendance(attendanceId, summary)
+      await updateAttendance(attendanceId, { resumo_geral: summary })
 
       const updated = {
         ...selected,
         summary,
         attendanceId,
-        attendanceCompleted: true,
-        presence: true,
+        attendanceCompleted: selected.attendanceCompleted,
+        presence: selected.presence,
       }
 
       setAppointments((current) =>
@@ -279,53 +278,6 @@ export default function GerenciamentoResponsavel() {
     }
   }
 
-  async function markPresence(presence: boolean) {
-    if (!selected) return
-
-    setSaving(true)
-    setFeedback('')
-
-    try {
-      let attendanceId = selected.attendanceId
-
-      if (!attendanceId) {
-        attendanceId = await createAttendance(
-          selected.appointment.id_agendamento,
-          selected.appointment.data,
-        )
-      }
-
-      await updateAttendance(attendanceId, {
-        presenca: presence,
-        concluido: true,
-      })
-
-      const updated = {
-        ...selected,
-        attendanceId,
-        attendanceCompleted: true,
-        presence,
-      }
-
-      setAppointments((current) =>
-        current.map((item) =>
-          item.appointment.id_agendamento ===
-          selected.appointment.id_agendamento
-            ? updated
-            : item,
-        ),
-      )
-      setSelected(updated)
-    } catch (error) {
-      setFeedback(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível registrar a presença.',
-      )
-    } finally {
-      setSaving(false)
-    }
-  }
 
   return (
     <main className="page-shell staff-management-shell">
@@ -402,10 +354,10 @@ export default function GerenciamentoResponsavel() {
 
                     <div className="management-card__meta">
                       <span className="management-meta-item">
-                        {item.appointment.horario}
+                        <Icon name="clock" /> {item.appointment.horario}
                       </span>
                       <span className="management-meta-item">
-                        Sala de acolhimento
+                        <Icon name="pin" /> Sala de acolhimento
                       </span>
                     </div>
 
@@ -418,27 +370,9 @@ export default function GerenciamentoResponsavel() {
                         Detalhes
                       </button>
 
-                      {statusOf(item) === 'Próximos' && (
-                        <>
-                          <button
-                            type="button"
-                            className="management-action management-action--soft"
-                            onClick={() => openAppointment(item, true)}
-                          >
-                            Registrar atendimento
-                          </button>
-                        </>
-                      )}
-
-                      {item.summary && (
-                        <button
-                          type="button"
-                          className="management-action management-action--soft"
-                          onClick={() => openAppointment(item)}
-                        >
-                          Ver resumo
-                        </button>
-                      )}
+                      <button type="button" className="management-action management-action--soft" onClick={() => openAppointment(item, true)}>
+                        <Icon name="edit" /> {item.summary ? 'Resumo' : 'Adicionar resumo'}
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -470,17 +404,21 @@ export default function GerenciamentoResponsavel() {
           >
             <header className="management-modal__header">
               <div className="management-modal__title-wrap">
+                <span className="management-modal__symbol" aria-hidden="true"><Icon name="ear" /></span>
                 <div>
-                  <p className="eyebrow">Atendimento</p>
+                  <p className="eyebrow">Escuta e Acolhimento</p>
                   <h2 id="management-modal-title">{selected.student}</h2>
-                  <p>{formatDate(selected.appointment.data).full} às {selected.appointment.horario}</p>
                 </div>
               </div>
+              <nav className="management-modal__tabs" aria-label="Seções do atendimento">
+                <button type="button" className={activeTab === 'details' ? 'is-active' : ''} aria-pressed={activeTab === 'details'} onClick={() => { setActiveTab('details'); setEditingSummary(false) }}>Detalhes</button>
+                <button type="button" className={activeTab === 'summary' ? 'is-active' : ''} aria-pressed={activeTab === 'summary'} onClick={() => { setActiveTab('summary'); setEditingSummary(false); setSummaryDraft(selected.summary) }}>Resumo</button>
+              </nav>
             </header>
 
-            {editingSummary ? (
-              <div className="management-summary-editor">
-                <h3>Resumo do acolhimento</h3>
+            {activeTab === 'summary' ? (
+              editingSummary ? <div className="management-summary-editor">
+                <h3>Registro de Acolhimento</h3>
 
                 <label htmlFor="appointment-summary">
                   Registro do atendimento
@@ -515,88 +453,55 @@ export default function GerenciamentoResponsavel() {
                     onClick={saveSummary}
                     disabled={saving}
                   >
-                    {saving ? 'Salvando...' : 'Salvar atendimento'}
+                    {saving ? 'Salvando...' : 'Salvar resumo'}
                   </button>
                 </div>
-              </div>
+              </div> : (
+                <div className="management-summary-view">
+                  <h3>Registro de Acolhimento</h3>
+                  {selected.summary ? <p>{selected.summary}</p> : <p className="management-summary-empty">Nenhum resumo registrado para este atendimento.</p>}
+                  <div className="management-modal__footer">
+                    <button type="button" className="management-secondary-button" onClick={() => setSelected(null)}>Fechar</button>
+                    <button type="button" className="management-primary-button" onClick={() => { setSummaryDraft(selected.summary); setEditingSummary(true) }}>
+                      <Icon name="edit" /> {selected.summary ? 'Editar resumo' : 'Adicionar resumo'}
+                    </button>
+                  </div>
+                </div>
+              )
             ) : (
               <div className="management-detail-content">
                 <div className="management-detail-field management-detail-field--student">
-                  <span>Nome completo</span>
+                  <span><Icon name="user" /> Nome completo</span>
                   <strong>{selected.student}</strong>
                 </div>
 
                 <div className="management-detail-field">
-                  <span>Status</span>
-                  <strong>{statusLabel(selected)}</strong>
+                  <span><Icon name="check-circle" /> Status</span>
+                  <strong><span className={`management-status management-status--${statusClass(statusLabel(selected))}`}>{statusLabel(selected)}</span></strong>
                 </div>
 
                 <div className="management-detail-grid">
                   <div className="management-detail-field">
-                    <span>Data</span>
+                    <span><Icon name="calendar" /> Data</span>
                     <strong>{formatDate(selected.appointment.data).full}</strong>
                   </div>
 
                   <div className="management-detail-field">
-                    <span>Horário</span>
+                    <span><Icon name="clock" /> Horário</span>
                     <strong>{selected.appointment.horario} — 30 minutos</strong>
                   </div>
 
                   <div className="management-detail-field">
-                    <span>Local</span>
+                    <span><Icon name="pin" /> Local</span>
                     <strong>Sala de acolhimento</strong>
                   </div>
                 </div>
 
-                {selected.summary && (
-                  <div className="management-summary-view">
-                    <h3>Registro de Acolhimento</h3>
-                    <p>{selected.summary}</p>
-                  </div>
-                )}
 
-                {statusOf(selected) === 'Próximos' && (
-                  <div className="management-modal__footer">
-                    <button
-                      type="button"
-                      className="management-secondary-button"
-                      onClick={() => markPresence(false)}
-                      disabled={saving}
-                    >
-                      Registrar ausência
-                    </button>
 
-                    <button
-                      type="button"
-                      className="management-primary-button"
-                      onClick={() => markPresence(true)}
-                      disabled={saving}
-                    >
-                      {saving ? 'Salvando...' : 'Registrar presença'}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="management-primary-button"
-                      onClick={() => setEditingSummary(true)}
-                      disabled={saving}
-                    >
-                      Registrar resumo
-                    </button>
-                  </div>
-                )}
-
-                {statusOf(selected) !== 'Próximos' && (
-                  <div className="management-modal__footer">
-                    <button
-                      type="button"
-                      className="management-primary-button"
-                      onClick={() => setSelected(null)}
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                )}
+                <div className="management-modal__footer">
+                  <button type="button" className="management-primary-button" onClick={() => setSelected(null)}>Fechar</button>
+                </div>
               </div>
             )}
           </section>

@@ -199,15 +199,6 @@
     gap: 8px;
   }
   
-  .appointment-card__meta span::before {
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    border: 1.5px solid var(--color-primary);
-    border-radius: 50%;
-    content: '';
-  }
-  
   /* Botões do agendamento */
   
   .appointment-card__actions {

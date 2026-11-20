@@ -1,6 +1,8 @@
 ﻿
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { signOut } from 'firebase/auth'
+import { auth } from '../../services/firebase'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   getStudent,
@@ -72,6 +74,8 @@ function InfoIcon() {
 export default function Profile() {
   const { user } = useAuth()
   const navigate = useNavigate()
+
+  async function handleLogout() { await signOut(auth); navigate('/entrar', { replace: true }) }
 
   const [student, setStudent] = useState<StudentProfile | null>(null)
   const [preferredName, setPreferredName] = useState('')
@@ -299,6 +303,7 @@ export default function Profile() {
           <p>Volte à sua área para consultar seus próximos horários.</p>
         </div>
 
+        <div className="profile-page__account-actions">
         <button
           className="button button--soft profile-page__back"
           type="button"
@@ -306,6 +311,8 @@ export default function Profile() {
         >
           Voltar
         </button>
+        <button className="button button--dark profile-page__logout" type="button" onClick={handleLogout}>Sair da conta</button>
+        </div>
       </div>
     </main>
   )

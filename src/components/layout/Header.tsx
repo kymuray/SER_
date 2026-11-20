@@ -1,23 +1,13 @@
 
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { signOut } from 'firebase/auth'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { auth } from '../../services/firebase'
 
 function Header() {
   const { pathname } = useLocation()
   const { user, isResponsavel } = useAuth()
-  const navigate = useNavigate()
-  const isResponsavelArea = pathname.startsWith('/painel-responsavel')
+  const isResponsavelArea = pathname.startsWith('/painel-responsavel') || pathname === '/perfil-responsavel'
 
-  async function handleLogout() {
-    try {
-      await signOut(auth)
-      navigate('/entrar')
-    } catch {
-      // Mantém a sessão atual caso o Firebase não consiga encerrar o acesso.
-    }
-  }
+
 
   return (
     <header className="site-header">
@@ -52,31 +42,15 @@ function Header() {
           </nav>
         )}
 
-        {isResponsavelArea ? (
+        {user ? (
           <div className="site-header__actions">
-            <span className="header-profile-label">Responsável</span>
-            <button type="button" className="site-action site-action--secondary" onClick={handleLogout}>
-              Sair
-            </button>
-          </div>
-        ) : user && !isResponsavel ? (
-          <div className="site-header__actions">
-            <Link className="header-user-area" to="/perfil" aria-label="Acessar minha área">
-
-            <svg
-              className="header-user-area__icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="8" r="3.5" />
-              <path d="M5 20c.7-3.8 3-5.7 7-5.7s6.3 1.9 7 5.7" />
-            </svg>
-            <span>Minha área</span>
+            <Link className="header-user-area" to={isResponsavel ? '/perfil-responsavel' : '/perfil'} aria-label="Acessar minha área">
+              <svg className="header-user-area__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c.7-3.8 3-5.7 7-5.7s6.3 1.9 7 5.7" />
+              </svg>
+              <span>Minha área</span>
             </Link>
-            <button type="button" className="site-action site-action--secondary" onClick={handleLogout}>
-              Sair
-            </button>
           </div>
         ) : (
           <div className="site-header__actions">

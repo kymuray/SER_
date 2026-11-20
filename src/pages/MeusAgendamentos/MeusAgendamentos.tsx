@@ -14,6 +14,7 @@ import {
   type AvailableTime,
 } from '../../services/availabilityService'
 import './MeusAgendamentos.css'
+import Icon from '../../components/layout/Icon'
 
 function parseDateParts(date: unknown) {
   let parsedDate: Date | null = null
@@ -120,9 +121,9 @@ function ScheduledAppointmentCard({
         <h3>Escuta SER</h3>
 
         <div className="appointment-card__meta">
-          <span>{appointment.horario} — 30 minutos</span>
-          <span>Sala do SER</span>
-          <span>{formatDate(appointment.data)}</span>
+          <span><Icon name="clock" />{appointment.horario} — 30 minutos</span>
+          <span><Icon name="pin" />Sala do SER</span>
+          <span><Icon name="calendar" />{formatDate(appointment.data)}</span>
         </div>
 
         <div className="appointment-card__actions">
@@ -131,7 +132,7 @@ function ScheduledAppointmentCard({
             className="appointment-card__button appointment-card__button--neutral"
             onClick={onReschedule}
           >
-            Remarcar
+            <Icon name="calendar" /> Remarcar
           </button>
 
           <button
@@ -139,7 +140,7 @@ function ScheduledAppointmentCard({
             className="appointment-card__button appointment-card__button--danger"
             onClick={onCancel}
           >
-            Cancelar
+            <Icon name="x" /> Cancelar
           </button>
         </div>
       </div>

@@ -325,3 +325,39 @@ export async function getReservedTimeByAppointment(
 
   return snapshot.docs[0].data()
 }
+
+
+/** Reativa um agendamento cancelado somente se o horário original continuar livre. */
+export async function reactivateAppointment(idAgendamento: number) {
+  const appointmentRef = doc(db, 'agendamentos', String(idAgendamento))
+  const appointmentSnapshot = await getDoc(appointmentRef)
+  if (!appointmentSnapshot.exists()) throw new Error('Agendamento não encontrado.')
+
+  const appointment = appointmentSnapshot.data() as AppointmentData
+  if (appointment.status !== 'cancelado') throw new Error('Este agendamento não está cancelado.')
+
+  const slotQuery = query(
+    collection(db, 'horarios_disponiveis'),
+    where('data', '==', appointment.data),
+    where('horario', '==', appointment.horario),
+  )
+  const slotSnapshot = await getDocs(slotQuery)
+  const freeSlot = slotSnapshot.docs.find((item) => item.data().disponivel === true)
+  if (!freeSlot) {
+    throw new Error('O horário original não está mais disponível. Faça um novo agendamento.')
+  }
+
+  const slotRef = doc(db, 'horarios_disponiveis', freeSlot.id)
+  await runTransaction(db, async (transaction) => {
+    const currentAppointment = await transaction.get(appointmentRef)
+    const currentSlot = await transaction.get(slotRef)
+    if (!currentAppointment.exists() || currentAppointment.data().status !== 'cancelado') {
+      throw new Error('O status foi alterado. Atualize a agenda.')
+    }
+    if (!currentSlot.exists() || currentSlot.data().disponivel !== true) {
+      throw new Error('Este horário acabou de ser ocupado. Atualize a agenda.')
+    }
+    transaction.update(appointmentRef, { status: 'agendado' })
+    transaction.update(slotRef, { disponivel: false, id_agendamento: idAgendamento })
+  })
+}

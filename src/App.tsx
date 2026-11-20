@@ -9,6 +9,7 @@ import Home from './pages/Home/Home'
 import Agendar from './pages/Agendar/Agendar'
 import MeusAgendamentos from './pages/MeusAgendamentos/MeusAgendamentos'
 import Profile from './pages/Profile/Profile'
+import ResponsibleProfile from './pages/Responsavel/MinhaAreaResponsavel'
 import StudentAuth from './pages/StudentAuth/StudentAuth'
 import Responsavel from './pages/Responsavel/Responsavel'
 import PainelResponsavel from './pages/Responsavel/PainelResponsavel'
@@ -16,6 +17,7 @@ import AgendaResponsavel from './pages/Responsavel/AgendaResponsavel'
 import GerenciamentoResponsavel from './pages/Responsavel/GerenciamentoResponsavel'
 
 import './styles/pages.css'
+import './pages/Responsavel/responsive-overrides.css'
 
 function AppLayout() {
   const { pathname } = useLocation()
@@ -39,6 +41,7 @@ function AppLayout() {
 
         <Route element={<ProtectedRoute role="responsavel" />}>
           <Route path="/painel-responsavel" element={<PainelResponsavel />} />
+          <Route path="/perfil-responsavel" element={<ResponsibleProfile />} />
           <Route
             path="/painel-responsavel/agenda"
             element={<AgendaResponsavel />}

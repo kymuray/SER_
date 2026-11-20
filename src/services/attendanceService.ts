@@ -172,3 +172,15 @@ export async function completeAttendance(
     resumo_geral: resumo,
   })
 }
+
+/** Atualiza presença/ausência usando os campos já existentes no backend. */
+export async function setAttendanceStatus(
+  idAgendamento: number,
+  data: string,
+  presence: boolean,
+) {
+  const existing = await getAttendanceByAppointment(idAgendamento) as AttendanceData | null
+  const attendanceId = existing?.id_atendimento ?? await createAttendance(idAgendamento, data)
+  await updateAttendance(attendanceId, { presenca: presence, concluido: true })
+  return attendanceId
+}

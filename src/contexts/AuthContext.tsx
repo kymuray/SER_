@@ -1,7 +1,7 @@
-﻿import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
-import { auth } from '../services/firebase'
+import { auth, authReady } from '../services/firebase'
 
 export const RESPONSAVEL_UID = '7NBwLe6iDrfENDbmgwTqSCtwWyl2'
 
@@ -18,12 +18,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser)
-      setLoading(false)
+    let unsubscribe: (() => void) | undefined
+    let active = true
+
+    authReady.then(() => {
+      if (!active) return
+      unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser)
+        setLoading(false)
+      })
+    }).catch(() => {
+      if (active) setLoading(false)
     })
 
-    return unsubscribe
+    return () => {
+      active = false
+      unsubscribe?.()
+    }
   }, [])
 
   const value = {
