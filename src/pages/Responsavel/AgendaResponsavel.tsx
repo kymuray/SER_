@@ -4,7 +4,13 @@ import {
   getAvailableTimes,
   type AvailableTime,
 } from '../../services/availabilityService'
-import { cancelAppointment, reactivateAppointment, getAppointmentsByResponsible, type AppointmentData } from '../../services/appointmentService'
+import {
+  cancelAppointment,
+  deleteAppointment,
+  reactivateAppointment,
+  getAppointmentsByResponsible,
+  type AppointmentData,
+} from '../../services/appointmentService'
 import { getAttendanceByAppointment, setAttendanceStatus, type AttendanceData } from '../../services/attendanceService'
 import { getStudentsByIds } from '../../services/studentService'
 import { RESPONSAVEL_ID } from '../../services/responsibleService'
@@ -371,4 +377,28 @@ export default function AgendaResponsavel() {
       </p>
     </main>
   )
+}
+async function removeAppointment(appointment: AppointmentData) {
+  const confirmed = window.confirm(
+    `Tem certeza que deseja excluir permanentemente o agendamento de ${students[appointment.id_aluno] || 'este aluno'}?`,
+  )
+
+  if (!confirmed) return
+
+  setSaving(true)
+  setFeedback('')
+
+  try {
+    await deleteAppointment(appointment.id_agendamento)
+    setFeedback('Agendamento excluído com sucesso.')
+    await loadAgenda()
+  } catch (error) {
+    setFeedback(
+      error instanceof Error
+        ? error.message
+        : 'Não foi possível excluir o agendamento.',
+    )
+  } finally {
+    setSaving(false)
+  }
 }

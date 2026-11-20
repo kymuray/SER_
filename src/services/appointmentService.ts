@@ -361,3 +361,62 @@ export async function reactivateAppointment(idAgendamento: number) {
     transaction.update(slotRef, { disponivel: false, id_agendamento: idAgendamento })
   })
 }
+/** Exclui permanentemente um agendamento e seu atendimento vinculado. */
+export async function deleteAppointment(idAgendamento: number) {
+  const appointmentRef = doc(
+    db,
+    'agendamentos',
+    String(idAgendamento),
+  )
+
+  const slotQuery = query(
+    collection(db, 'horarios_disponiveis'),
+    where('id_agendamento', '==', idAgendamento),
+  )
+
+  const attendanceQuery = query(
+    collection(db, 'atendimentos'),
+    where('id_agendamento', '==', idAgendamento),
+  )
+
+  const [slotSnapshot, attendanceSnapshot] = await Promise.all([
+    getDocs(slotQuery),
+    getDocs(attendanceQuery),
+  ])
+
+  const slotRefs = slotSnapshot.docs.map((item) => item.ref)
+  const attendanceRefs = attendanceSnapshot.docs.map((item) => item.ref)
+
+  await runTransaction(db, async (transaction) => {
+    const appointmentSnapshot = await transaction.get(appointmentRef)
+
+    if (!appointmentSnapshot.exists()) {
+      throw new Error('Agendamento não encontrado.')
+    }
+
+    const slotSnapshots = await Promise.all(
+      slotRefs.map((ref) => transaction.get(ref)),
+    )
+
+    const attendanceSnapshots = await Promise.all(
+      attendanceRefs.map((ref) => transaction.get(ref)),
+    )
+
+    slotSnapshots.forEach((snapshot) => {
+      if (snapshot.exists()) {
+        transaction.update(snapshot.ref, {
+          disponivel: true,
+          id_agendamento: null,
+        })
+      }
+    })
+
+    attendanceSnapshots.forEach((snapshot) => {
+      if (snapshot.exists()) {
+        transaction.delete(snapshot.ref)
+      }
+    })
+
+    transaction.delete(appointmentRef)
+  })
+}
