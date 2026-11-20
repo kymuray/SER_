@@ -398,7 +398,7 @@ export default function Agendar() {
               </p>
 
               <p className="field-hint">
-                O horário será reservado no Firestore após a confirmação.
+                O horário será reservado após a confirmação.
               </p>
 
               <button
