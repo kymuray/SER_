@@ -34,12 +34,28 @@ const filters: FilterStatus[] = [
 function parseDateParts(date: unknown) {
   if (typeof date === 'string') {
     const value = date.trim()
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
 
-    if (match) {
-      const year = Number(match[1])
-      const month = Number(match[2])
-      const day = Number(match[3])
+    const isoMatch = value.match(/(\d{4})-(\d{2})-(\d{2})/)
+    if (isoMatch) {
+      const year = Number(isoMatch[1])
+      const month = Number(isoMatch[2])
+      const day = Number(isoMatch[3])
+      const candidate = new Date(year, month - 1, day)
+
+      if (
+        candidate.getFullYear() === year &&
+        candidate.getMonth() === month - 1 &&
+        candidate.getDate() === day
+      ) {
+        return candidate
+      }
+    }
+
+    const brMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (brMatch) {
+      const day = Number(brMatch[1])
+      const month = Number(brMatch[2])
+      const year = Number(brMatch[3])
       const candidate = new Date(year, month - 1, day)
 
       if (
@@ -94,54 +110,6 @@ function parseDateParts(date: unknown) {
 }
 
 function formatDate(date: unknown) {
-  if (typeof date === 'string') {
-    const value = date.trim()
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
-
-    if (match) {
-      const year = Number(match[1])
-      const month = Number(match[2])
-      const day = Number(match[3])
-      const monthNames = [
-        'janeiro',
-        'fevereiro',
-        'março',
-        'abril',
-        'maio',
-        'junho',
-        'julho',
-        'agosto',
-        'setembro',
-        'outubro',
-        'novembro',
-        'dezembro',
-      ]
-      const weekdayNames = [
-        'domingo',
-        'segunda-feira',
-        'terça-feira',
-        'quarta-feira',
-        'quinta-feira',
-        'sexta-feira',
-        'sábado',
-      ]
-      const candidate = new Date(year, month - 1, day)
-
-      if (
-        candidate.getFullYear() === year &&
-        candidate.getMonth() === month - 1 &&
-        candidate.getDate() === day
-      ) {
-        return {
-          day: String(day).padStart(2, '0'),
-          month: monthNames[month - 1],
-          weekday: weekdayNames[candidate.getDay()],
-          full: `${String(day).padStart(2, '0')} de ${monthNames[month - 1]} de ${year}`,
-        }
-      }
-    }
-  }
-
   const parsedDate = parseDateParts(date)
 
   if (!parsedDate) {
