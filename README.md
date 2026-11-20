@@ -44,34 +44,7 @@ Para a responsável
 * Consulta ao histórico de atendimentos.
 
 Estrutura do Projeto
-SER_/
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   │   ├── auth/
-│   │   ├── home/
-│   │   └── layout/
-│   ├── contexts/
-│   ├── pages/
-│   │   ├── Agendar/
-│   │   ├── Home/
-│   │   ├── Login/
-│   │   ├── MeusAgendamentos/
-│   │   ├── Profile/
-│   │   ├── Responsavel/
-│   │   └── StudentAuth/
-│   ├── services/
-│   ├── styles/
-│   ├── utils/
-│   ├── App.tsx
-│   └── main.tsx
-├── firestore.rules
-├── package.json
-├── package-lock.json
-├── tsconfig.json
-├── vite.config.ts
-└── eslint.config.js
+
 A pasta pages reúne as telas do sistema; components contém os componentes reutilizáveis; contexts organiza a autenticação; services reúne as operações com o Firebase; e styles contém os arquivos de estilo.
 
 Banco de Dados
