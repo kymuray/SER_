@@ -110,7 +110,6 @@ export async function createAppointment(
       status: 'agendado',
       id_responsavel: data.id_responsavel,
       id_aluno: data.id_aluno,
-      id_horario: data.id_horario,
       data,
       horario: time,
     })
@@ -161,45 +160,9 @@ export async function getAppointmentsByResponsible(idResponsavel: number) {
 
   const snapshot = await getDocs(appointmentsQuery)
 
-  const appointments = await Promise.all(
-    snapshot.docs.map(async (item) => {
-      const appointment = item.data() as AppointmentData
-
-      if (
-        typeof appointment.data === 'string' &&
-        /^\d{4}-\d{2}-\d{2}$/.test(appointment.data.trim())
-      ) {
-        return appointment
-      }
-
-      if (appointment.id_horario !== undefined && appointment.id_horario !== null) {
-        const slotSnapshot = await getDoc(
-          doc(db, 'horarios_disponiveis', String(appointment.id_horario)),
-        )
-
-        if (slotSnapshot.exists()) {
-          const slot = slotSnapshot.data()
-
-          if (typeof slot.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(slot.data.trim())) {
-            return {
-              ...appointment,
-              data: slot.data.trim(),
-              horario:
-                typeof appointment.horario === 'string' && appointment.horario.trim()
-                  ? appointment.horario
-                  : String(slot.horario ?? ''),
-            }
-          }
-        }
-      }
-
-      return appointment
-    }),
-  )
-
-  return appointments.sort((a, b) =>
-    `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`),
-  )
+  return snapshot.docs
+    .map((item) => item.data() as AppointmentData)
+    .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`))
 }
 
 export async function cancelAppointment(idAgendamento: number) {
