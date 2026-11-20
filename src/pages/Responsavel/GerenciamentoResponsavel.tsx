@@ -31,13 +31,81 @@ const filters: FilterStatus[] = [
   'Próximos',
 ]
 
-function formatDate(date: string) {
-  const parsed = new Date(`${date}T12:00:00`)
+function parseDateParts(date: unknown) {
+  let parsedDate: Date | null = null
+
+  if (typeof date === 'string') {
+    const value = date.trim()
+    const match = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value)
+
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const candidate = new Date(year, month - 1, day)
+
+      if (
+        candidate.getFullYear() === year &&
+        candidate.getMonth() === month - 1 &&
+        candidate.getDate() === day
+      ) {
+        parsedDate = candidate
+      }
+    }
+
+    if (!parsedDate) {
+      const candidate = new Date(value)
+      if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
+    }
+  } else if (date instanceof Date) {
+    parsedDate = Number.isNaN(date.getTime()) ? null : date
+  } else if (typeof date === 'number') {
+    const candidate = new Date(date)
+    if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    'toDate' in date &&
+    typeof (date as { toDate?: unknown }).toDate === 'function'
+  ) {
+    const candidate = (date as { toDate: () => Date }).toDate()
+    if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
+      parsedDate = candidate
+    }
+  } else if (
+    date &&
+    typeof date === 'object' &&
+    ('seconds' in date || '_seconds' in date)
+  ) {
+    const value = date as { seconds?: unknown; _seconds?: unknown }
+    const seconds = Number(value.seconds ?? value._seconds)
+
+    if (Number.isFinite(seconds)) {
+      const candidate = new Date(seconds * 1000)
+      if (!Number.isNaN(candidate.getTime())) parsedDate = candidate
+    }
+  }
+
+  return parsedDate
+}
+
+function formatDate(date: unknown) {
+  const parsedDate = parseDateParts(date)
+
+  if (!parsedDate) {
+    return {
+      day: '--',
+      month: 'Data',
+      weekday: 'Data não disponível',
+      full: 'Data não disponível',
+    }
+  }
+
   return {
-    day: parsed.toLocaleDateString('pt-BR', { day: '2-digit' }),
-    month: parsed.toLocaleDateString('pt-BR', { month: 'long' }),
-    weekday: parsed.toLocaleDateString('pt-BR', { weekday: 'long' }),
-    full: parsed.toLocaleDateString('pt-BR', {
+    day: parsedDate.toLocaleDateString('pt-BR', { day: '2-digit' }),
+    month: parsedDate.toLocaleDateString('pt-BR', { month: 'long' }),
+    weekday: parsedDate.toLocaleDateString('pt-BR', { weekday: 'long' }),
+    full: parsedDate.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
