@@ -105,15 +105,16 @@ export async function createAppointment(
       throw new Error('Este horário não está mais disponível.')
     }
 
-    transaction.set(appointmentRef, {
-      id_agendamento,
-      data_criacao: serverTimestamp(),
-      status: 'agendado',
-      id_responsavel: data.id_responsavel,
-      id_aluno: data.id_aluno,
-      data,
-      horario: time,
-    })
+    
+transaction.set(appointmentRef, {
+  id_agendamento,
+  data_criacao: serverTimestamp(),
+  status: 'agendado',
+  id_responsavel: data.id_responsavel,
+  id_aluno: data.id_aluno,
+  data: date,
+  horario: time,
+})
 
     transaction.update(slotRef, {
       disponivel: false,
