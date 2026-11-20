@@ -174,6 +174,7 @@ export default function MeusAgendamentos() {
   const [availableTimes, setAvailableTimes] = useState<AvailableTime[]>([])
   const [newSlotId, setNewSlotId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  const [canceling, setCanceling] = useState<AppointmentData | null>(null)
 
   async function loadAppointments() {
     if (!user) return
@@ -272,12 +273,6 @@ export default function MeusAgendamentos() {
   }
 
   async function handleCancel(appointment: AppointmentData) {
-    const confirmed = window.confirm(
-      'Deseja realmente cancelar este agendamento?',
-    )
-
-    if (!confirmed) return
-
     setSaving(true)
     setFeedback('')
 
@@ -328,12 +323,62 @@ export default function MeusAgendamentos() {
           <ScheduledAppointmentCard
             appointment={nextAppointment}
             onReschedule={() => openReschedule(nextAppointment)}
-            onCancel={() => handleCancel(nextAppointment)}
+            onCancel={() => setCanceling(nextAppointment)}
           />
         ) : (
           <EmptyAppointmentCard />
         )}
       </section>
+
+      {canceling && (
+        <div
+          className="management-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !saving) setCanceling(null)
+          }}
+        >
+          <section className="management-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+            <header className="management-modal__header">
+              <div>
+                <p className="eyebrow">Cancelar agendamento</p>
+                <h2 id="cancel-title">Deseja cancelar este atendimento?</h2>
+              </div>
+            </header>
+
+            <div className="management-detail-content">
+              <p>
+                Seu atendimento de <strong>{formatDate(canceling.data)}</strong>, às <strong>{canceling.horario}</strong>, será cancelado.
+              </p>
+              <p className="field-hint">
+                Essa ação libera o horário para outro agendamento.
+              </p>
+
+              <div className="management-modal__footer">
+                <button
+                  type="button"
+                  className="management-secondary-button"
+                  onClick={() => setCanceling(null)}
+                  disabled={saving}
+                >
+                  Voltar
+                </button>
+                <button
+                  type="button"
+                  className="management-primary-button management-primary-button--danger"
+                  onClick={async () => {
+                    await handleCancel(canceling)
+                    setCanceling(null)
+                  }}
+                  disabled={saving}
+                >
+                  {saving ? 'Cancelando...' : 'Sim, cancelar'}
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
 
       {rescheduling && (
         <div
