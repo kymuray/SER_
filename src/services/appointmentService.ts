@@ -18,6 +18,7 @@ export type AppointmentData = {
   status: AppointmentStatus
   id_responsavel: number
   id_aluno: number
+  id_horario?: number
   data: string
   horario: string
 }
