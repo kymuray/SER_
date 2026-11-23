@@ -1,4 +1,4 @@
-﻿
+
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
@@ -9,6 +9,7 @@ import {
   updateStudentPreferredName,
 } from '../../services/studentService'
 import './Profile.css'
+import Icon from '../../components/layout/Icon'
 
 type StudentProfile = {
   nome_completo?: string
@@ -309,9 +310,11 @@ export default function Profile() {
           type="button"
           onClick={() => navigate('/agendamentos')}
         >
-          Voltar
+          <Icon name="arrow-left" /> Voltar
         </button>
-        <button className="button button--dark profile-page__logout" type="button" onClick={handleLogout}>Sair da conta</button>
+        <button className="button button--dark profile-page__logout" type="button" onClick={handleLogout}>
+          <Icon name="logout" /> Sair da conta
+        </button>
         </div>
       </div>
     </main>

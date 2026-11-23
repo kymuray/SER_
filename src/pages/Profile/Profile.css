@@ -446,3 +446,64 @@
 .profile-form__error {
   color: #b42335;
 }
+
+
+/* Ações da conta padronizadas entre o perfil do aluno e a área da responsável. */
+.profile-page__account-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.profile-page__account-actions .profile-page__back,
+.profile-page__account-actions .profile-page__logout {
+  display: inline-flex;
+  width: 124px;
+  min-width: 124px;
+  min-height: 44px;
+  flex: 0 0 124px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.profile-page__account-actions button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 760px) {
+  .profile-page__actions {
+    width: 100%;
+  }
+
+  .profile-page__account-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .profile-page__account-actions .profile-page__back,
+  .profile-page__account-actions .profile-page__logout {
+    width: 100%;
+    min-width: 0;
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-page__account-actions {
+    grid-template-columns: 1fr;
+  }
+}
