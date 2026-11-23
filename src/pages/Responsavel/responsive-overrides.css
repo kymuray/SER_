@@ -1,12 +1,1851 @@
-/* Ajustes responsivos e componentes de agenda */
-.staff-week-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:18px 0 22px}
-.staff-week-day{display:flex;min-width:0;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border:1px solid var(--color-line);border-radius:12px;background:#fff;color:var(--color-ink);cursor:pointer}
-.staff-week-day span{font-size:11px;text-transform:capitalize;color:var(--color-muted)}.staff-week-day strong{font-size:18px}.staff-week-day.is-selected{border-color:var(--color-primary);background:var(--color-primary);color:#fff}.staff-week-day.is-selected span{color:#fff}
-.agenda-status-editor,.management-status-control{display:flex;flex-direction:column;gap:5px;color:var(--color-muted);font-size:11px;font-weight:700}.agenda-status-editor select,.management-status-control select{max-width:100%;min-height:34px;padding:5px 9px;border:1px solid var(--color-line);border-radius:8px;background:#fff;color:var(--color-ink);font:inherit;font-size:12px}
-.management-card__actions{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin-top:18px}.management-action{display:inline-flex;align-items:center;gap:7px}.management-action svg,.management-meta-item svg{width:17px;height:17px;flex:0 0 17px}.management-status-control{min-width:125px}.management-detail-content{display:grid;gap:18px}.management-detail-field{display:grid;gap:6px}.management-detail-field span{color:var(--color-muted);font-size:12px}.management-detail-field strong{width:fit-content;max-width:100%;padding-bottom:7px;border-bottom:1px solid var(--color-primary);overflow-wrap:anywhere}.management-summary-editor h3{display:flex;align-items:center;gap:9px}.management-summary-editor h3 svg{width:20px;height:20px;color:var(--color-primary)}.management-modal__close{border:0;background:transparent;font-size:28px;cursor:pointer;color:var(--color-muted)}.responsible-profile__panel{margin:20px 0;padding:26px}.responsible-profile__email{display:grid;gap:7px;margin-top:22px;padding-top:18px;border-top:1px solid var(--color-line)}.responsible-profile__email span{font-size:10px;font-weight:750;letter-spacing:.08em;color:var(--color-muted)}.responsible-profile__email strong{overflow-wrap:anywhere}.responsible-profile__account{display:grid;gap:10px;margin-top:28px;padding-top:24px;border-top:1px solid var(--color-line)}.responsible-profile__account h2{margin:0}.responsible-profile__account p:not(.eyebrow){margin:0;color:var(--color-muted)}.responsible-profile__back,.responsible-profile__logout{width:100%;max-width:100%;display:flex;align-items:center;justify-content:center;gap:9px}.responsible-profile__logout svg{width:17px;height:17px}.profile-page__account-actions{display:flex;flex-wrap:wrap;gap:10px}
-@media(max-width:760px){.staff-week-days{display:flex;overflow-x:auto;padding:2px 1px 9px;scroll-snap-type:x mandatory}.staff-week-day{flex:0 0 58px;scroll-snap-align:start}.management-card{min-height:0}.management-card__date{width:92px;flex-basis:92px;padding:16px 8px;gap:8px}.management-card__date strong{font-size:32px}.management-card__date span{font-size:9px}.management-card__body{padding:16px;}.management-card__actions{align-items:stretch}.management-status-control{flex:1 1 100%}.management-status-control select{width:100%}.management-modal-backdrop{padding:12px;align-items:flex-start;overflow-y:auto}.management-modal{width:100%;max-height:none;margin:auto 0;padding:22px 18px}.staff-management-shell,.appointments-page{width:calc(100% - 32px)}.staff-management-heading,.management-list-heading{align-items:flex-start;flex-direction:column}.management-count{min-width:0}.agenda-row{grid-template-columns:auto minmax(0,1fr);gap:8px}.agenda-row>*{min-width:0}.agenda-status-editor{grid-column:1/-1}.profile-page__actions{align-items:stretch;flex-direction:column}.profile-page__account-actions{width:100%;flex-direction:column}.profile-page__account-actions button{width:100%}.responsible-profile__panel{padding:20px}}
-@media(max-width:420px){.management-card{flex-direction:column}.management-card__date{width:100%;flex:0 0 auto;flex-direction:row;justify-content:space-between;padding:10px 14px}.management-card__date strong{font-size:24px}.management-card__body{padding:15px}.management-card__meta{gap:10px 14px;font-size:12px}.management-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:8px}.management-filter{flex:0 0 auto}.management-modal__footer{flex-wrap:wrap}.management-modal__footer button{flex:1 1 100%}}
 
-.appointment-card__meta span{display:inline-flex;align-items:center;gap:8px}.appointment-card__meta svg{width:17px;height:17px;flex:0 0 17px;color:var(--color-primary)}.appointment-card__actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px}.appointment-card__actions svg{width:16px;height:16px}
-@media(max-width:760px){.appointment-card{min-height:0}.appointment-card__date{width:112px;flex-basis:112px;padding:18px 10px}.appointment-card__date strong{font-size:38px}.appointment-card__details,.appointment-card__empty-copy{padding:20px 18px}.appointment-card__meta{gap:10px 14px;font-size:13px}.appointment-card__actions{gap:8px}.appointment-card__button{flex:1 1 auto}}
-@media(max-width:420px){.appointment-card{flex-direction:column}.appointment-card__date{width:100%;flex:0 0 auto;flex-direction:row;justify-content:space-between;padding:12px 16px}.appointment-card__date strong{font-size:26px}.appointment-card__details{padding:17px}.appointment-card__actions{flex-direction:column}.appointment-card__actions button{width:100%}}
+/* =========================================================
+   SER — RESPONSÁVEL
+   RESPONSIVIDADE E AJUSTES VISUAIS
+   Desktop, tablet e celular
+   ========================================================= */
+
+
+/* =========================================================
+   01. CONFIGURAÇÕES GERAIS
+   ========================================================= */
+
+   * {
+    box-sizing: border-box;
+  }
+  
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 320px;
+  }
+  
+  body {
+    overflow-x: hidden;
+  }
+  
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  
+  
+  /* =========================================================
+     02. HEADER E CONTEÚDO
+     ========================================================= */
+  
+  .site-header {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .site-header__inner {
+    width: min(1080px, calc(100% - 64px));
+    max-width: 100%;
+    margin-inline: auto;
+  }
+  
+  .staff-agenda-shell {
+    width: min(1080px, calc(100% - 64px));
+    max-width: 1080px;
+    min-width: 0;
+    margin: 48px auto 0;
+  }
+  
+  .staff-agenda-heading {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 28px;
+  }
+  
+  .staff-agenda-heading h1 {
+    line-height: 1.15;
+  }
+  
+  .staff-agenda-heading .page-lead {
+    max-width: 650px;
+    line-height: 1.6;
+  }
+  
+  
+  /* =========================================================
+     03. CARDS DA AGENDA
+     ========================================================= */
+  
+  .staff-dashboard--agenda {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+  
+    grid-template-columns:
+      minmax(0, 1.6fr)
+      minmax(0, 0.9fr);
+  
+    align-items: stretch;
+    gap: 24px;
+  }
+  
+  .staff-dashboard--agenda > * {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  
+  .staff-dashboard--agenda .day-agenda,
+  .staff-dashboard--agenda .weekly-card {
+    width: 100%;
+    min-width: 0;
+    padding: 28px;
+    border-radius: 22px;
+  }
+  
+  .staff-dashboard--agenda .card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  
+  .staff-dashboard--agenda .card-heading > * {
+    min-width: 0;
+  }
+  
+  .staff-dashboard--agenda .card-heading .button {
+    min-height: 44px;
+    white-space: nowrap;
+  }
+  
+  
+  /* =========================================================
+     04. SELETORES DE DATA E HORÁRIO
+     ========================================================= */
+  
+  /* O container permanece visível */
+  
+  .staff-dashboard--agenda .add-time {
+    display: flex !important;
+    width: 100%;
+    min-width: 0;
+  
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  
+    margin-top: 22px;
+    margin-bottom: 30px;
+    padding: 16px;
+  
+    border-radius: 14px;
+    background: #f4f3f0;
+  }
+  
+  /* Campos individuais */
+  
+  .staff-dashboard--agenda .add-time .agenda-picker-field {
+    position: relative;
+    isolation: isolate;
+  
+    display: flex !important;
+    flex: 1 1 190px;
+  
+    width: auto;
+    min-width: 190px;
+    min-height: 50px;
+  
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+  
+    padding: 0 42px 0 14px;
+  
+    overflow: hidden;
+  
+    border: 1px solid var(--color-line);
+    border-radius: 11px;
+  
+    background: #fff;
+    color: var(--color-ink);
+  
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  
+    transition:
+      border-color .2s ease,
+      box-shadow .2s ease,
+      background .2s ease;
+  }
+  
+  /* Texto dos campos */
+  
+  .staff-dashboard--agenda .agenda-picker-field > span {
+    position: relative;
+    z-index: 1;
+  
+    flex: 0 0 auto;
+  
+    color: var(--color-muted);
+    font-size: 12px;
+    font-weight: 650;
+  
+    pointer-events: none;
+  }
+  
+  .staff-dashboard--agenda .agenda-picker-field > strong {
+    position: relative;
+    z-index: 1;
+  
+    min-width: 0;
+  
+    color: var(--color-ink);
+    font-size: 13px;
+    font-weight: 700;
+  
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  
+    pointer-events: none;
+  }
+  
+  /* Ícone de calendário */
+  
+  .staff-dashboard--agenda .agenda-picker-field:not(.agenda-picker-field--time)::after {
+    content: "▦";
+  
+    position: absolute;
+    z-index: 1;
+  
+    right: 14px;
+    top: 50%;
+  
+    transform: translateY(-50%);
+  
+    color: var(--color-primary);
+    font-size: 21px;
+    line-height: 1;
+  
+    pointer-events: none;
+  }
+  
+  /* Ícone de relógio */
+  
+  .staff-dashboard--agenda .agenda-picker-field--time::after {
+    content: "◷";
+  
+    position: absolute;
+    z-index: 1;
+  
+    right: 14px;
+    top: 50%;
+  
+    transform: translateY(-50%);
+  
+    color: var(--color-primary);
+    font-size: 22px;
+    line-height: 1;
+  
+    pointer-events: none;
+  }
+  
+  /* Input nativo continua presente e funcional */
+  
+  .staff-dashboard--agenda .agenda-picker-field input[type="date"],
+  .staff-dashboard--agenda .agenda-picker-field input[type="time"] {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 5 !important;
+  
+    display: block !important;
+  
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+  
+    margin: 0 !important;
+    padding: 0 !important;
+  
+    border: 0 !important;
+    border-radius: inherit;
+  
+    opacity: .015 !important;
+  
+    background: transparent !important;
+    color: transparent !important;
+  
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Indicador nativo */
+  
+  .staff-dashboard--agenda .agenda-picker-field input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+  
+    width: 100%;
+    height: 100%;
+  
+    margin: 0;
+    cursor: pointer;
+  }
+  
+  /* Foco */
+  
+  .staff-dashboard--agenda .agenda-picker-field:focus-within {
+    border-color: var(--color-primary);
+    outline: 2px solid rgb(190 32 59 / 18%);
+    outline-offset: 2px;
+  }
+  
+  /* Botão adicionar */
+  
+  .staff-dashboard--agenda .add-time > .button {
+    min-height: 46px;
+    border-radius: 11px;
+  }
+  
+  
+  /* =========================================================
+     05. LISTA DE HORÁRIOS
+     ========================================================= */
+  
+  .staff-dashboard--agenda .agenda-list {
+    width: 100%;
+    min-width: 0;
+    margin-top: 0;
+  }
+  
+  .staff-dashboard--agenda .agenda-row {
+    position: relative;
+    min-width: 0;
+  }
+  
+  .staff-dashboard--agenda .agenda-row > * {
+    min-width: 0;
+  }
+  
+  .agenda-row__status {
+    display: flex;
+    min-width: 0;
+  
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .agenda-status.cancelled {
+    background: #f9e5e9;
+    color: #a91a31;
+  }
+  
+  .agenda-status.confirmed {
+    background: #e7f1fa;
+    color: #326b9e;
+  }
+  
+  .agenda-status.absent {
+    background: #fff3d9;
+    color: #956515;
+  }
+  
+  .agenda-status.done {
+    background: #dff2e4;
+    color: #278044;
+  }
+  
+  /* Seletor de status */
+  
+  .agenda-status-editor {
+    position: relative;
+    z-index: 2;
+  
+    display: flex;
+    min-width: 116px;
+  
+    flex-direction: column;
+    gap: 5px;
+  
+    color: var(--color-muted);
+    font-size: 11px;
+    font-weight: 700;
+  
+    pointer-events: auto;
+  }
+  
+  .agenda-row__status select {
+    position: relative;
+    z-index: 2;
+  
+    display: block;
+  
+    width: 100%;
+    min-width: 124px;
+    min-height: 40px;
+  
+    padding: 7px 30px 7px 10px;
+  
+    border: 1px solid #d7d7d2;
+    border-radius: 10px;
+  
+    background: #fff;
+    color: #242428;
+  
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 1;
+  }
+  
+  .agenda-row__status select:disabled {
+    cursor: wait;
+    opacity: .65;
+  }
+  
+  
+  /* =========================================================
+     06. DISPONIBILIDADE SEMANAL
+     SETE DIAS VERTICAIS
+     ========================================================= */
+  
+  /* Container dos dias */
+  
+  .weekly-card .staff-week-days {
+    display: flex !important;
+  
+    width: 100% !important;
+    min-width: 0;
+  
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+  
+    align-items: stretch !important;
+    justify-content: flex-start;
+  
+    gap: 9px;
+  
+    margin: 20px 0 26px;
+    padding: 0;
+  
+    overflow: visible !important;
+  }
+  
+  /* Botões dos dias */
+  
+  .weekly-card .staff-week-day {
+    display: flex !important;
+  
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  
+    min-height: 48px;
+  
+    flex: 0 0 auto !important;
+  
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  
+    align-items: center !important;
+    justify-content: space-between !important;
+  
+    gap: 12px;
+  
+    padding: 12px 16px;
+  
+    border: 1px solid var(--color-primary);
+    border-radius: 12px;
+  
+    background: #fff;
+    color: var(--color-ink);
+  
+    cursor: pointer;
+    text-align: left !important;
+  
+    transition:
+      background .2s ease,
+      color .2s ease,
+      border-color .2s ease,
+      box-shadow .2s ease,
+      transform .2s ease;
+  }
+  
+  /* Nome do dia */
+  
+  .weekly-card .staff-week-day span {
+    display: block;
+  
+    flex: 0 1 auto;
+    min-width: 0;
+  
+    color: var(--color-muted);
+  
+    font-size: 12px;
+    font-weight: 750;
+  
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  
+  /* Quantidade disponível */
+  
+  .weekly-card .staff-week-day strong {
+    display: block;
+  
+    flex: 0 0 auto;
+  
+    color: var(--color-muted);
+  
+    font-size: 12px;
+    font-weight: 700;
+  
+    text-align: right;
+    white-space: nowrap;
+  }
+  
+  /* Hover */
+  
+  .weekly-card .staff-week-day:hover:not(.is-selected) {
+    background: #fff4f5;
+    border-color: var(--color-primary);
+  
+    box-shadow: 0 3px 10px rgb(190 32 59 / 8%);
+  }
+  
+  /* Dia selecionado: preenchimento vermelho */
+  
+  .weekly-card .staff-week-day.is-selected {
+    background: var(--color-primary) !important;
+    border: 1px solid var(--color-primary) !important;
+  
+    color: #fff !important;
+  
+    box-shadow: 0 4px 12px rgb(190 32 59 / 20%);
+  }
+  
+  .weekly-card .staff-week-day.is-selected span,
+  .weekly-card .staff-week-day.is-selected strong {
+    color: #fff !important;
+  }
+  
+  /* Foco por teclado */
+  
+  .weekly-card .staff-week-day:focus-visible {
+    outline: 3px solid rgb(190 32 59 / 25%);
+    outline-offset: 3px;
+  }
+  
+  
+  /* =========================================================
+     07. INFORMAÇÕES DA SEMANA
+     ========================================================= */
+  
+  .weekly-card .occupancy-label {
+    display: flex;
+  
+    width: 100%;
+  
+    align-items: center;
+    justify-content: space-between;
+  
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  
+    margin-top: 20px;
+  
+    line-height: 1.5;
+  }
+  
+  .weekly-card .occupancy-label strong {
+    max-width: 65%;
+  
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  
+  
+  /* Barra de progresso */
+  
+  .weekly-card .progress {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+  }
+  
+  .weekly-card .progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+  }
+  
+  
+  /* =========================================================
+     08. ÍCONES
+     ========================================================= */
+  
+  button svg,
+  a svg,
+  .profile-panel__icon svg,
+  .profile-hero svg,
+  .management-card svg,
+  .management-modal svg,
+  .appointment-card svg {
+    display: inline-block;
+  
+    width: 1.15em;
+    height: 1.15em;
+  
+    max-width: 1.15em;
+    max-height: 1.15em;
+  
+    flex: 0 0 auto;
+  
+    vertical-align: middle;
+  }
+  
+  .profile-page__account-actions .button {
+    display: inline-flex;
+  
+    align-items: center;
+    justify-content: center;
+  
+    gap: 9px;
+  }
+  
+  .profile-page__account-actions .button svg {
+    width: 17px;
+    height: 17px;
+    max-width: 17px;
+    max-height: 17px;
+  }
+  
+  .profile-privacy-note {
+    align-items: center;
+  }
+  
+  .profile-privacy-note svg {
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+  }
+  
+  
+  /* =========================================================
+     09. GERENCIAMENTO
+     Preservação dos componentes existentes
+     ========================================================= */
+  
+  .management-card__actions {
+    display: flex;
+  
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: flex-end;
+  
+    gap: 9px;
+    margin-top: 18px;
+  }
+  
+  .management-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  
+  .management-card__actions .management-action {
+    flex: 0 0 auto;
+  }
+  
+  .management-action svg,
+  .management-meta-item svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+  }
+  
+  .management-detail-content {
+    display: grid;
+    gap: 18px;
+  }
+  
+  .management-detail-field {
+    display: grid;
+    gap: 6px;
+  }
+  
+  .management-detail-field span {
+    color: var(--color-muted);
+    font-size: 12px;
+  }
+  
+  .management-detail-field strong {
+    width: fit-content;
+    max-width: 100%;
+  
+    padding-bottom: 7px;
+  
+    border-bottom: 1px solid var(--color-primary);
+  
+    overflow-wrap: anywhere;
+  }
+  
+  .management-detail-field > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .management-detail-field > span svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+  
+    color: var(--color-primary);
+    stroke: currentColor;
+  }
+  
+  .management-detail-field > strong > .management-status {
+    display: inline-flex;
+    border: 1px solid transparent;
+  }
+  
+  .management-summary-editor h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  
+  .management-summary-editor h3 svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-primary);
+  }
+  
+  .management-modal__close {
+    border: 0;
+    background: transparent;
+  
+    color: var(--color-muted);
+    font-size: 28px;
+  
+    cursor: pointer;
+  }
+  
+  .management-modal__header {
+    align-items: center;
+  }
+  
+  .management-modal__title-wrap {
+    align-items: center;
+  }
+  
+  .management-modal__symbol svg {
+    width: 27px;
+    height: 27px;
+    stroke: currentColor;
+  }
+  
+  .management-modal__tabs {
+    flex: 0 0 auto;
+  }
+  
+  .management-modal__footer {
+    display: flex;
+  
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  
+    gap: 10px;
+    margin-top: 34px;
+  }
+  
+  .management-primary-button,
+  .management-secondary-button {
+    display: inline-flex;
+  
+    min-height: 42px;
+  
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  
+    padding: 0 19px;
+  
+    border: 1px solid transparent;
+    border-radius: 8px;
+  
+    cursor: pointer;
+  
+    font-size: 12px;
+    font-weight: 750;
+  }
+  
+  .management-primary-button {
+    background: var(--color-primary);
+    color: #fff;
+  }
+  
+  .management-primary-button:hover {
+    background: var(--color-primary-dark);
+  }
+  
+  .management-secondary-button {
+    border-color: #d8d8d4;
+    background: #f4f4f1;
+    color: #55565a;
+  }
+  
+  .management-summary-view {
+    min-height: 360px;
+    padding: 42px 18px 0;
+  }
+  
+  .management-summary-view h3 {
+    margin: 0 0 18px;
+    color: #292a2d;
+    font-size: 16px;
+    font-weight: 760;
+  }
+  
+  .management-summary-view > p {
+    color: #55565a;
+    font-size: 15px;
+    font-weight: 550;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+  
+  .management-summary-view > .management-summary-empty {
+    color: #898a8d;
+    font-weight: 400;
+  }
+  
+  .management-summary-editor {
+    padding: 30px 12px 0;
+  }
+  
+  .management-editor-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+  }
+  
+  .management-editor-heading svg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .management-editor-heading h3 {
+    margin: 0;
+    color: #3c3d40;
+    font-size: 18px;
+  }
+  
+  .management-summary-editor label {
+    display: block;
+    margin-bottom: 9px;
+    color: #55565a;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  
+  .management-summary-editor textarea {
+    display: block;
+  
+    width: 100%;
+    min-height: 220px;
+  
+    resize: vertical;
+  
+    padding: 14px 2px;
+  
+    border: 0;
+    border-bottom: 2px solid #b33a4d;
+    border-radius: 0;
+  
+    outline: 0;
+  
+    background: #fff;
+    color: #444549;
+  
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .management-summary-editor textarea:focus {
+    border-bottom-color: var(--color-primary);
+    box-shadow: 0 2px 0 rgb(197 29 53 / 12%);
+  }
+  
+  .management-privacy-note {
+    margin-top: 10px;
+    color: #898a8d;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  
+  
+  /* =========================================================
+     10. PERFIL DA RESPONSÁVEL
+     ========================================================= */
+  
+  .responsible-profile {
+    width: min(100% - 48px, 1040px);
+    max-width: 850px;
+  }
+  
+  .responsible-profile .profile-hero {
+    margin-bottom: 22px;
+  }
+  
+  .responsible-profile__grid {
+    align-items: stretch;
+  }
+  
+  .responsible-profile__grid .profile-panel {
+    min-width: 0;
+  }
+  
+  .responsible-profile__panel {
+    margin: 20px 0;
+    padding: 26px;
+  }
+  
+  .responsible-profile__email {
+    display: grid;
+    gap: 7px;
+  
+    margin-top: 22px;
+    padding-top: 18px;
+  
+    border-top: 1px solid var(--color-line);
+  }
+  
+  .responsible-profile__email span {
+    color: var(--color-muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .08em;
+  }
+  
+  .responsible-profile__email strong {
+    overflow-wrap: anywhere;
+  }
+  
+  .responsible-profile__account {
+    display: grid;
+    gap: 10px;
+  
+    margin-top: 28px;
+    padding-top: 24px;
+  
+    border-top: 1px solid var(--color-line);
+  }
+  
+  .responsible-profile__account h2,
+  .responsible-profile__account p {
+    margin: 0;
+  }
+  
+  .responsible-profile__account p:not(.eyebrow) {
+    color: var(--color-muted);
+  }
+  
+  .responsible-profile .profile-page__actions {
+    align-items: flex-start;
+  }
+  
+  .responsible-profile .profile-page__account-actions {
+    display: grid;
+    width: min(100%, 360px);
+    gap: 10px;
+  }
+  
+  .responsible-profile__back,
+  .responsible-profile__logout {
+    display: flex;
+  
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+  
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+  }
+  
+  .responsible-profile__back {
+    border: 1px solid #c9c9c4 !important;
+    background: #fff !important;
+    color: #29292d !important;
+    font-weight: 750;
+  }
+  
+  .responsible-profile__back:hover {
+    border-color: #8c8c87 !important;
+    background: #f4f4f1 !important;
+  }
+  
+  .responsible-profile__logout {
+    background: #29292d !important;
+    color: #fff !important;
+  }
+  
+  .responsible-profile__logout:hover {
+    background: #111114 !important;
+  }
+  
+  .responsible-profile__logout svg {
+    width: 17px;
+    height: 17px;
+  }
+  
+  .profile-page__account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  
+  /* =========================================================
+     11. AGENDAMENTOS DO ALUNO
+     ========================================================= */
+  
+  .appointment-card__meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .appointment-card__meta svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    color: var(--color-primary);
+  }
+  
+  .appointment-card__actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+  
+  .appointment-card__actions svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  
+  /* =========================================================
+     12. TABLETS
+     ========================================================= */
+  
+  @media (max-width: 900px) {
+  
+    .site-header__inner {
+      width: calc(100% - 40px);
+    }
+  
+    .staff-agenda-shell {
+      width: calc(100% - 40px);
+      max-width: 760px;
+      margin: 36px auto 0;
+    }
+  
+    .staff-dashboard--agenda {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+    }
+  
+    .staff-dashboard--agenda .day-agenda,
+    .staff-dashboard--agenda .weekly-card {
+      width: 100%;
+      padding: 24px;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-days {
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: visible !important;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-day {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+  }
+  
+  
+  /* =========================================================
+     13. RESPONSIVIDADE DOS OUTROS COMPONENTES
+     ========================================================= */
+  
+  @media (max-width: 760px) {
+  
+    .management-card {
+      min-height: 0;
+    }
+  
+    .management-card__date {
+      width: 92px;
+      flex-basis: 92px;
+      padding: 16px 8px;
+      gap: 8px;
+    }
+  
+    .management-card__date strong {
+      font-size: 32px;
+    }
+  
+    .management-card__date span {
+      font-size: 9px;
+    }
+  
+    .management-card__body {
+      padding: 16px;
+    }
+  
+    .management-card__actions {
+      align-items: stretch;
+    }
+  
+    .management-status-control {
+      flex: 1 1 100%;
+    }
+  
+    .management-status-control select {
+      width: 100%;
+    }
+  
+    .management-modal-backdrop {
+      padding: 12px;
+      align-items: flex-start;
+      overflow-y: auto;
+    }
+  
+    .management-modal {
+      width: 100%;
+      max-height: none;
+      margin: auto 0;
+      padding: 22px 18px;
+    }
+  
+    .staff-management-shell,
+    .appointments-page {
+      width: calc(100% - 32px);
+    }
+  
+    .staff-management-heading,
+    .management-list-heading {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  
+    .management-count {
+      min-width: 0;
+    }
+  
+    .agenda-row {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 8px;
+    }
+  
+    .agenda-row > * {
+      min-width: 0;
+    }
+  
+    .agenda-row__status,
+    .agenda-free-label {
+      grid-column: 1 / -1;
+    }
+  
+    .agenda-row__status {
+      width: 100%;
+    }
+  
+    .agenda-row__status select {
+      width: 100%;
+      min-width: 0;
+    }
+  
+    .profile-page__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  
+    .profile-page__account-actions {
+      width: 100%;
+      flex-direction: column;
+    }
+  
+    .profile-page__account-actions button {
+      width: 100%;
+    }
+  
+    .responsible-profile__panel {
+      padding: 20px;
+    }
+  
+    .appointment-card {
+      min-height: 0;
+    }
+  
+    .appointment-card__date {
+      width: 112px;
+      flex-basis: 112px;
+      padding: 18px 10px;
+    }
+  
+    .appointment-card__date strong {
+      font-size: 38px;
+    }
+  
+    .appointment-card__details,
+    .appointment-card__empty-copy {
+      padding: 20px 18px;
+    }
+  
+    .appointment-card__meta {
+      gap: 10px 14px;
+      font-size: 13px;
+    }
+  
+    .appointment-card__actions {
+      gap: 8px;
+    }
+  
+    .appointment-card__button {
+      flex: 1 1 auto;
+    }
+  
+    .management-modal__header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  
+    .management-modal__tabs {
+      width: 100%;
+      min-height: 38px;
+      justify-content: flex-start;
+    }
+  
+    .management-modal__tabs button.is-active::after {
+      bottom: -1px;
+    }
+  
+    .responsible-profile {
+      width: calc(100% - 32px);
+    }
+  
+    .responsible-profile .profile-page__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  
+    .responsible-profile .profile-page__account-actions {
+      width: 100%;
+    }
+  
+    /* Data e horário sempre visíveis */
+  
+    .staff-dashboard--agenda .add-time {
+      display: flex !important;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+  
+    .staff-dashboard--agenda .add-time .agenda-picker-field {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
+      min-height: 50px;
+    }
+  }
+  
+  
+  /* =========================================================
+     14. CELULARES
+     ========================================================= */
+  
+  @media (max-width: 560px) {
+  
+    html,
+    body,
+    #root {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+  
+    .site-header {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  
+    .site-header__inner {
+      width: calc(100% - 32px);
+      max-width: calc(100% - 32px);
+      margin-inline: auto;
+    }
+  
+    .staff-agenda-shell {
+      width: calc(100% - 32px);
+      max-width: 480px;
+      margin: 28px auto 0;
+      padding: 0;
+    }
+  
+    .staff-agenda-heading {
+      margin-bottom: 22px;
+    }
+  
+    .staff-agenda-heading h1 {
+      font-size: clamp(30px, 8vw, 38px);
+      line-height: 1.15;
+    }
+  
+    .staff-agenda-heading .page-lead {
+      max-width: 100%;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+  
+    /* Cards empilhados e centralizados */
+  
+    .staff-dashboard--agenda {
+      display: grid;
+  
+      width: 100%;
+      min-width: 0;
+  
+      grid-template-columns: minmax(0, 1fr);
+  
+      gap: 18px;
+      margin-inline: auto;
+    }
+  
+    .staff-dashboard--agenda > .day-agenda,
+    .staff-dashboard--agenda > .weekly-card {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+  
+      padding: 18px;
+      border-radius: 19px;
+    }
+  
+    /* Cabeçalho */
+  
+    .staff-dashboard--agenda .card-heading {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 14px;
+    }
+  
+    .staff-dashboard--agenda .card-heading .button {
+      width: 100%;
+      min-height: 46px;
+    }
+  
+    /* Container dos campos */
+  
+    .staff-dashboard--agenda .add-time {
+      display: flex !important;
+  
+      width: 100%;
+  
+      flex-direction: column;
+      align-items: stretch;
+  
+      gap: 12px;
+  
+      margin-top: 20px;
+      margin-bottom: 30px;
+  
+      padding: 12px;
+    }
+  
+    /* Campo de data e horário */
+  
+    .staff-dashboard--agenda .add-time .agenda-picker-field {
+      display: flex !important;
+  
+      flex: 0 0 auto;
+  
+      width: 100%;
+      min-width: 0;
+      min-height: 54px;
+  
+      align-items: center;
+      gap: 12px;
+  
+      padding: 0 42px 0 14px;
+  
+      border-radius: 11px;
+    }
+  
+    .staff-dashboard--agenda .agenda-picker-field > span {
+      font-size: 12px;
+    }
+  
+    .staff-dashboard--agenda .agenda-picker-field > strong {
+      font-size: 13px;
+    }
+  
+    .staff-dashboard--agenda .agenda-picker-field input {
+      display: block !important;
+    }
+  
+    .staff-dashboard--agenda .add-time > .button {
+      width: 100%;
+      min-height: 46px;
+    }
+  
+    /* Lista de horários */
+  
+    .staff-dashboard--agenda .agenda-list {
+      margin-top: 0;
+    }
+  
+    .staff-dashboard--agenda .agenda-row {
+      min-width: 0;
+      gap: 9px;
+    }
+  
+    .staff-dashboard--agenda .agenda-row > * {
+      min-width: 0;
+    }
+  
+    .staff-dashboard--agenda .agenda-row__status,
+    .staff-dashboard--agenda .agenda-free-label {
+      grid-column: 1 / -1;
+    }
+  
+    /* Disponibilidade vertical */
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-days {
+      display: flex !important;
+  
+      width: 100% !important;
+  
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
+  
+      align-items: stretch !important;
+  
+      gap: 9px;
+  
+      margin: 18px 0 26px;
+      padding: 0;
+  
+      overflow: visible !important;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-day {
+      display: flex !important;
+  
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+  
+      min-height: 50px;
+      flex: 0 0 auto !important;
+  
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+  
+      align-items: center !important;
+      justify-content: space-between !important;
+  
+      gap: 12px;
+  
+      padding: 13px 14px;
+  
+      border-radius: 12px;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-day span {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-day strong {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  
+    /* Informações abaixo dos dias */
+  
+    .staff-dashboard--agenda .occupancy-label {
+      display: flex;
+  
+      width: 100%;
+  
+      align-items: flex-start;
+      justify-content: space-between;
+  
+      flex-wrap: wrap;
+      gap: 8px 12px;
+  
+      margin-top: 20px;
+      font-size: 12px;
+    }
+  
+    .staff-dashboard--agenda .occupancy-label strong {
+      max-width: 62%;
+      text-align: right;
+    }
+  
+    .staff-agenda-shell .demo-note {
+      margin-top: 18px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+  
+    /* Perfil */
+  
+    .responsible-profile {
+      width: calc(100% - 32px);
+    }
+  
+    .responsible-profile__panel {
+      padding: 18px;
+    }
+  
+    /* Gerenciamento */
+  
+    .management-card {
+      min-height: 0;
+      border-radius: 15px;
+    }
+  
+    .management-card__date {
+      width: 82px;
+      flex-basis: 82px;
+      gap: 8px;
+      padding: 14px 7px;
+    }
+  
+    .management-card__date span {
+      font-size: 8px;
+    }
+  
+    .management-card__date strong {
+      font-size: 34px;
+    }
+  
+    .management-card__body {
+      padding: 13px 12px 12px;
+    }
+  
+    .management-card__body h3 {
+      margin-top: 8px;
+      font-size: 14px;
+    }
+  
+    .management-card__student {
+      font-size: 11px;
+    }
+  
+    .management-card__meta {
+      display: grid;
+      gap: 7px;
+      margin-top: 9px;
+      font-size: 11px;
+    }
+  
+    .management-meta-item svg {
+      width: 15px;
+      height: 15px;
+      flex-basis: 15px;
+    }
+  
+    .management-card__actions {
+      justify-content: flex-start;
+      gap: 6px;
+      margin-top: 11px;
+    }
+  
+    .management-action {
+      min-height: 30px;
+      gap: 4px;
+      padding-inline: 8px;
+      font-size: 10px;
+    }
+  
+    .management-action svg {
+      width: 14px;
+      height: 14px;
+      flex-basis: 14px;
+    }
+  
+    .management-modal-backdrop {
+      align-items: center;
+      padding: 12px;
+    }
+  
+    .management-modal {
+      max-height: calc(100svh - 24px);
+      padding: 20px 17px 18px;
+      border-radius: 17px;
+    }
+  
+    .management-modal__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 17px;
+      padding-bottom: 17px;
+    }
+  
+    .management-modal__symbol {
+      width: 38px;
+      height: 38px;
+      flex-basis: 38px;
+    }
+  
+    .management-modal__title-wrap h2 {
+      font-size: 16px;
+    }
+  
+    .management-modal__tabs {
+      min-height: 34px;
+      gap: 22px;
+    }
+  
+    .management-modal__tabs button.is-active::after {
+      bottom: -17px;
+    }
+  
+    .management-detail-content {
+      padding: 20px 2px 0;
+    }
+  
+    .management-detail-field {
+      gap: 8px;
+      margin-bottom: 19px;
+    }
+  
+    .management-detail-field > span {
+      font-size: 12px;
+    }
+  
+    .management-detail-field > strong {
+      font-size: 14px;
+    }
+  
+    .management-detail-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+      margin-top: 17px;
+    }
+  
+    .management-summary-view {
+      min-height: 300px;
+      padding: 28px 2px 0;
+    }
+  
+    .management-summary-view > p {
+      font-size: 13px;
+    }
+  
+    .management-summary-editor {
+      padding: 23px 2px 0;
+    }
+  
+    .management-summary-editor textarea {
+      min-height: 190px;
+      font-size: 13px;
+    }
+  
+    .management-modal__footer {
+      gap: 8px;
+      margin-top: 24px;
+    }
+  
+    .management-primary-button,
+    .management-secondary-button {
+      min-height: 40px;
+      padding-inline: 13px;
+      font-size: 11px;
+    }
+  
+    /* Agendamentos */
+  
+    .appointment-card {
+      min-height: 0;
+      flex-direction: column;
+    }
+  
+    .appointment-card__date {
+      width: 100%;
+      flex: 0 0 auto;
+  
+      flex-direction: row;
+      justify-content: space-between;
+  
+      padding: 12px 16px;
+    }
+  
+    .appointment-card__date strong {
+      font-size: 26px;
+    }
+  
+    .appointment-card__details {
+      padding: 17px;
+    }
+  
+    .appointment-card__actions {
+      flex-direction: column;
+    }
+  
+    .appointment-card__actions button {
+      width: 100%;
+    }
+  
+    .appointment-card__meta {
+      gap: 10px 14px;
+      font-size: 13px;
+    }
+  
+    .site-footer__inner {
+      width: calc(100% - 32px);
+      max-width: calc(100% - 32px);
+    }
+  }
+  
+  
+  /* =========================================================
+     15. CELULARES PEQUENOS
+     ========================================================= */
+  
+  @media (max-width: 360px) {
+  
+    .site-header__inner {
+      width: calc(100% - 24px);
+    }
+  
+    .staff-agenda-shell {
+      width: calc(100% - 24px);
+    }
+  
+    .staff-dashboard--agenda > .day-agenda,
+    .staff-dashboard--agenda > .weekly-card {
+      padding: 14px;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-day {
+      min-height: 46px;
+      padding: 11px 10px;
+    }
+  
+    .staff-dashboard--agenda .weekly-card .staff-week-day span,
+    .staff-dashboard--agenda .weekly-card .staff-week-day strong {
+      font-size: 11px;
+    }
+  
+    .staff-dashboard--agenda .agenda-picker-field > span {
+      font-size: 11px;
+    }
+  
+    .management-card__date {
+      width: 70px;
+      flex-basis: 70px;
+    }
+  
+    .management-card__body {
+      padding-inline: 9px;
+    }
+  
+    .management-action {
+      padding-inline: 6px;
+    }
+    
+/* =====================================================
+   CORREÇÃO DEFINITIVA DOS ÍCONES DE DATA E HORÁRIO
+   ===================================================== */
+
+/* Espaço reservado para os ícones */
+.staff-dashboard--agenda .agenda-picker-field {
+    position: relative;
+    isolation: isolate;
+  }
+  
+  /* Remove os ícones antigos */
+  .staff-dashboard--agenda .agenda-picker-field::after {
+    content: none !important;
+  }
+  
+  /* Ícone de calendário */
+  .staff-dashboard--agenda
+  .agenda-picker-field:not(.agenda-picker-field--time)::before {
+    content: "";
+  
+    position: absolute;
+    z-index: 6;
+    right: 14px;
+    top: 50%;
+  
+    width: 19px;
+    height: 19px;
+  
+    transform: translateY(-50%);
+  
+    background-color: var(--color-primary);
+  
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M16 3v4M8 3v4M3 11h18'/%3E%3C/svg%3E") center / contain no-repeat;
+  
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M16 3v4M8 3v4M3 11h18'/%3E%3C/svg%3E") center / contain no-repeat;
+  
+    pointer-events: none;
+  }
+  
+  /* Ícone de relógio */
+  .staff-dashboard--agenda
+  .agenda-picker-field--time::before {
+    content: "";
+  
+    position: absolute;
+    z-index: 6;
+    right: 14px;
+    top: 50%;
+  
+    width: 20px;
+    height: 20px;
+  
+    transform: translateY(-50%);
+  
+    background-color: var(--color-primary);
+  
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") center / contain no-repeat;
+  
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") center / contain no-repeat;
+  
+    pointer-events: none;
+  }
+  
+  /* Mantém o campo nativo clicável */
+  .staff-dashboard--agenda
+  .agenda-picker-field input[type="date"],
+  .staff-dashboard--agenda
+  .agenda-picker-field input[type="time"] {
+    z-index: 5 !important;
+    opacity: 0.015 !important;
+    cursor: pointer !important;
+  }
+  
+  /* Evita cortes nos ícones no celular */
+  @media (max-width: 560px) {
+    .staff-dashboard--agenda
+    .agenda-picker-field::before {
+      right: 14px;
+    }
+  }
+  
+  }
+  
