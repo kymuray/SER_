@@ -23,6 +23,7 @@ import {
 
 import { getStudentsByIds } from '../../services/studentService'
 import { RESPONSAVEL_ID } from '../../services/responsibleService'
+import Icon from '../../components/layout/Icon'
 
 type AgendaItem = {
   appointment?: AppointmentData
@@ -363,6 +364,7 @@ export default function AgendaResponsavel() {
                   'pt-BR',
                 )}
               </strong>
+              <Icon className="agenda-picker-field__icon" name="calendar" />
 
               <input
                 ref={dateInputRef}
@@ -388,6 +390,7 @@ export default function AgendaResponsavel() {
                 >
                   <span>Horário</span>
                   <strong>{newTime}</strong>
+                  <Icon className="agenda-picker-field__icon" name="clock" />
 
                   <input
                     ref={timeInputRef}

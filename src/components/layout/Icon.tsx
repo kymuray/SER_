@@ -16,6 +16,7 @@ type IconName =
   | 'edit'
   | 'shield'
   | 'message'
+  | 'conversation'
 
 const paths: Record<IconName, ReactNode> = {
   user: <><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.8 3-5.7 7-5.7s6.3 1.9 7 5.7"/></>,
@@ -33,6 +34,7 @@ const paths: Record<IconName, ReactNode> = {
   edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></>,
   shield: <><path d="M12 3 19 6v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="m9 12 2 2 4-4"/></>,
   message: <><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9 9 0 0 1-4-.9L3 21l1.9-4A8.5 8.5 0 1 1 21 11.5Z"/></>,
+  conversation: <><path d="M5 4.75h14a1.25 1.25 0 0 1 1.25 1.25v8A1.25 1.25 0 0 1 19 15.25h-5.5L9 18.5v-3.25H5A1.25 1.25 0 0 1 3.75 14V6A1.25 1.25 0 0 1 5 4.75Z"/><path d="M8 9h8M8 12h5"/></>,
 }
 
 export default function Icon({ name, ...props }: SVGProps<SVGSVGElement> & { name: IconName }) {

@@ -828,3 +828,61 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+
+/* Resumo exibido em modo somente leitura na janela de detalhes. */
+.management-detail-summary {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-line);
+}
+
+.management-detail-summary h3 {
+  margin: 0 0 12px;
+  color: var(--color-ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.management-detail-summary p {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.management-detail-summary .management-summary-empty {
+  color: var(--color-muted);
+}
+
+.management-modal__close {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.management-modal__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.management-modal__close:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+@media (max-width: 560px) {
+  .management-detail-summary {
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+}

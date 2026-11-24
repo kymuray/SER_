@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Icon from '../../components/layout/Icon'
 
 export default function PainelResponsavel() {
   return (
@@ -19,10 +20,19 @@ export default function PainelResponsavel() {
           </Link>
         </div>
 
-        <div className="staff-highlights">
-          <span>Atendimentos de hoje</span>
-          <span>Horários livres</span>
-          <span>Segurança</span>
+        <div className="staff-highlights" aria-label="Informações do acesso">
+          <span className="staff-highlights__item">
+            <Icon name="conversation" />
+            <span>Atendimentos de hoje</span>
+          </span>
+          <span className="staff-highlights__item">
+            <Icon name="clock" />
+            <span>Horários livres</span>
+          </span>
+          <span className="staff-highlights__item">
+            <Icon name="shield" />
+            <span>Segurança</span>
+          </span>
         </div>
       </section>
     </main>

@@ -154,8 +154,7 @@ export default function GerenciamentoResponsavel() {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('Concluídos')
   const [selected, setSelected] = useState<ManagementAppointment | null>(null)
   const [summaryDraft, setSummaryDraft] = useState('')
-  const [editingSummary, setEditingSummary] = useState(false)
-  const [activeTab, setActiveTab] = useState<'details' | 'summary'>('details')
+  const [modalMode, setModalMode] = useState<'details' | 'summary-editor'>('details')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [feedback, setFeedback] = useState('')
@@ -216,11 +215,18 @@ export default function GerenciamentoResponsavel() {
     [appointments, activeFilter],
   )
 
-  function openAppointment(item: ManagementAppointment, edit = false) {
+  function openAppointment(item: ManagementAppointment) {
     setSelected(item)
     setSummaryDraft(item.summary)
-    setEditingSummary(edit)
-    setActiveTab(edit ? 'summary' : 'details')
+    setModalMode('details')
+    setFeedback('')
+  }
+
+  function openSummaryEditor(item: ManagementAppointment) {
+    if (!item.attendanceCompleted || !item.presence) return
+    setSelected(item)
+    setSummaryDraft(item.summary)
+    setModalMode('summary-editor')
     setFeedback('')
   }
 
@@ -266,7 +272,7 @@ export default function GerenciamentoResponsavel() {
         ),
       )
       setSelected(updated)
-      setEditingSummary(false)
+      setModalMode('details')
     } catch (error) {
       setFeedback(
         error instanceof Error
@@ -370,9 +376,15 @@ export default function GerenciamentoResponsavel() {
                         Detalhes
                       </button>
 
-                      <button type="button" className="management-action management-action--soft" onClick={() => openAppointment(item, true)}>
-                        <Icon name="edit" /> {item.summary ? 'Resumo' : 'Adicionar resumo'}
-                      </button>
+                      {item.attendanceCompleted && item.presence && (
+                        <button
+                          type="button"
+                          className="management-action management-action--soft"
+                          onClick={() => openSummaryEditor(item)}
+                        >
+                          <Icon name="edit" /> {item.summary ? 'Resumo' : 'Adicionar resumo'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -393,7 +405,7 @@ export default function GerenciamentoResponsavel() {
           className="management-modal-backdrop"
           role="presentation"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setSelected(null)
+            if (event.target === event.currentTarget && !saving) setSelected(null)
           }}
         >
           <section
@@ -410,20 +422,21 @@ export default function GerenciamentoResponsavel() {
                   <h2 id="management-modal-title">{selected.student}</h2>
                 </div>
               </div>
-              <nav className="management-modal__tabs" aria-label="Seções do atendimento">
-                <button type="button" className={activeTab === 'details' ? 'is-active' : ''} aria-pressed={activeTab === 'details'} onClick={() => { setActiveTab('details'); setEditingSummary(false) }}>Detalhes</button>
-                <button type="button" className={activeTab === 'summary' ? 'is-active' : ''} aria-pressed={activeTab === 'summary'} onClick={() => { setActiveTab('summary'); setEditingSummary(false); setSummaryDraft(selected.summary) }}>Resumo</button>
-              </nav>
+              <button
+                type="button"
+                className="management-modal__close"
+                aria-label="Fechar janela"
+                onClick={() => setSelected(null)}
+                disabled={saving}
+              >
+                <Icon name="x" />
+              </button>
             </header>
 
-            {activeTab === 'summary' ? (
-              editingSummary ? <div className="management-summary-editor">
+            {modalMode === 'summary-editor' ? (
+              <div className="management-summary-editor">
                 <h3>Registro de Acolhimento</h3>
-
-                <label htmlFor="appointment-summary">
-                  Registro do atendimento
-                </label>
-
+                <label htmlFor="appointment-summary">Registro do atendimento</label>
                 <textarea
                   id="appointment-summary"
                   value={summaryDraft}
@@ -432,73 +445,59 @@ export default function GerenciamentoResponsavel() {
                   rows={8}
                   disabled={saving}
                 />
-
                 <p className="management-privacy-note">
-                  Este registro pertence ao ATENDIMENTO e fica disponível somente para a responsável.
+                  Este registro pertence ao atendimento e fica disponível somente para a responsável.
                 </p>
-
+                {feedback && <p className="form-feedback" role="alert">{feedback}</p>}
                 <div className="management-modal__footer">
                   <button
                     type="button"
                     className="management-secondary-button"
-                    onClick={() => setEditingSummary(false)}
+                    onClick={() => setSelected(null)}
                     disabled={saving}
                   >
                     Voltar
                   </button>
-
                   <button
                     type="button"
                     className="management-primary-button"
                     onClick={saveSummary}
-                    disabled={saving}
+                    disabled={saving || !summaryDraft.trim()}
                   >
                     {saving ? 'Salvando...' : 'Salvar resumo'}
                   </button>
                 </div>
-              </div> : (
-                <div className="management-summary-view">
-                  <h3>Registro de Acolhimento</h3>
-                  {selected.summary ? <p>{selected.summary}</p> : <p className="management-summary-empty">Nenhum resumo registrado para este atendimento.</p>}
-                  <div className="management-modal__footer">
-                    <button type="button" className="management-secondary-button" onClick={() => setSelected(null)}>Fechar</button>
-                    <button type="button" className="management-primary-button" onClick={() => { setSummaryDraft(selected.summary); setEditingSummary(true) }}>
-                      <Icon name="edit" /> {selected.summary ? 'Editar resumo' : 'Adicionar resumo'}
-                    </button>
-                  </div>
-                </div>
-              )
+              </div>
             ) : (
               <div className="management-detail-content">
                 <div className="management-detail-field management-detail-field--student">
                   <span><Icon name="user" /> Nome completo</span>
                   <strong>{selected.student}</strong>
                 </div>
-
                 <div className="management-detail-field">
                   <span><Icon name="check-circle" /> Status</span>
                   <strong><span className={`management-status management-status--${statusClass(statusLabel(selected))}`}>{statusLabel(selected)}</span></strong>
                 </div>
-
                 <div className="management-detail-grid">
                   <div className="management-detail-field">
                     <span><Icon name="calendar" /> Data</span>
                     <strong>{formatDate(selected.appointment.data).full}</strong>
                   </div>
-
                   <div className="management-detail-field">
                     <span><Icon name="clock" /> Horário</span>
                     <strong>{selected.appointment.horario} — 30 minutos</strong>
                   </div>
-
                   <div className="management-detail-field">
                     <span><Icon name="pin" /> Local</span>
                     <strong>Sala de acolhimento</strong>
                   </div>
                 </div>
-
-
-
+                <section className="management-detail-summary" aria-labelledby="management-summary-title">
+                  <h3 id="management-summary-title">Registro de Acolhimento</h3>
+                  {selected.summary
+                    ? <p>{selected.summary}</p>
+                    : <p className="management-summary-empty">Nenhum resumo registrado para este atendimento.</p>}
+                </section>
                 <div className="management-modal__footer">
                   <button type="button" className="management-primary-button" onClick={() => setSelected(null)}>Fechar</button>
                 </div>

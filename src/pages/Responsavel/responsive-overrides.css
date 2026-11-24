@@ -1849,3 +1849,54 @@
   
   }
   
+
+/* Indicadores SVG dos campos de data e horário da Agenda. */
+.staff-dashboard--agenda .agenda-picker-field::before,
+.staff-dashboard--agenda .agenda-picker-field::after {
+  content: none !important;
+  display: none !important;
+}
+
+.staff-dashboard--agenda .agenda-picker-field__icon {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  right: 14px;
+  width: 19px;
+  height: 19px;
+  color: var(--color-primary);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.staff-dashboard--agenda .agenda-picker-field input[type="date"],
+.staff-dashboard--agenda .agenda-picker-field input[type="time"] {
+  z-index: 5 !important;
+  opacity: 0.015 !important;
+  cursor: pointer !important;
+}
+
+.staff-highlights__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.staff-highlights__item > svg {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 21px;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+
+@media (max-width: 560px) {
+  .staff-highlights__item {
+    flex-direction: column;
+    gap: 7px;
+    font-size: 11px;
+    white-space: normal;
+  }
+}
