@@ -51,7 +51,7 @@ function parseDateParts(date: unknown) {
       )
     }
 
-    const brMatch = value.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/)
+    const brMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
     if (brMatch) {
       return makeDate(
         Number(brMatch[3]),
@@ -61,7 +61,7 @@ function parseDateParts(date: unknown) {
     }
 
     // Aceita datas antigas que tenham sido gravadas como YYYYMMDD.
-    const compactMatch = value.match(/^(\\d{4})(\\d{2})(\\d{2})$/)
+    const compactMatch = value.match(/^(\d{4})(\d{2})(\d{2})$/)
     if (compactMatch) {
       return makeDate(
         Number(compactMatch[1]),
