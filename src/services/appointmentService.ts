@@ -27,6 +27,57 @@ function normalizeDate(date: string) {
   return date.trim()
 }
 
+function normalizeStoredDate(value: unknown) {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+
+    const iso = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (iso) {
+      return `${iso[1]}-${iso[2]}-${iso[3]}`
+    }
+
+    const br = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (br) {
+      return `${br[3]}-${br[2]}-${br[1]}`
+    }
+
+    return trimmed
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const year = value.getFullYear()
+    const month = String(value.getMonth() + 1).padStart(2, '0')
+    const day = String(value.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    'toDate' in value &&
+    typeof (value as { toDate?: unknown }).toDate === 'function'
+  ) {
+    return normalizeStoredDate(
+      (value as { toDate: () => Date }).toDate(),
+    )
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    ('seconds' in value || '_seconds' in value)
+  ) {
+    const raw = value as { seconds?: unknown; _seconds?: unknown }
+    const seconds = Number(raw.seconds ?? raw._seconds)
+
+    if (Number.isFinite(seconds)) {
+      return normalizeStoredDate(new Date(seconds * 1000))
+    }
+  }
+
+  return ''
+}
+
 function normalizeTime(time: string) {
   return time.trim()
 }
@@ -150,7 +201,13 @@ export async function getAppointmentsByStudent(idAluno: number) {
   const snapshot = await getDocs(appointmentsQuery)
 
   return snapshot.docs
-    .map((item) => item.data() as AppointmentData)
+    .map((item) => {
+      const data = item.data()
+      return {
+        ...data,
+        data: normalizeStoredDate(data.data),
+      } as AppointmentData
+    })
     .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`))
 }
 
@@ -163,7 +220,13 @@ export async function getAppointmentsByResponsible(idResponsavel: number) {
   const snapshot = await getDocs(appointmentsQuery)
 
   return snapshot.docs
-    .map((item) => item.data() as AppointmentData)
+    .map((item) => {
+      const data = item.data()
+      return {
+        ...data,
+        data: normalizeStoredDate(data.data),
+      } as AppointmentData
+    })
     .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`))
 }
 
@@ -194,8 +257,13 @@ export async function cancelAppointment(idAgendamento: number) {
       throw new Error('Este agendamento não pode ser cancelado.')
     }
 
+    const slotDate = slotSnapshot.docs[0]?.data().data
+    const slotTime = slotSnapshot.docs[0]?.data().horario
+
     transaction.update(appointmentRef, {
       status: 'cancelado',
+      ...(slotDate ? { data: normalizeStoredDate(slotDate) } : {}),
+      ...(slotTime ? { horario: normalizeTime(String(slotTime)) } : {}),
     })
 
     for (const slotDoc of slotSnapshot.docs) {
