@@ -63,12 +63,12 @@ export default function MinhaAreaResponsavel() {
     event.preventDefault()
     const preferredName = name.trim()
     if (!preferredName) {
-      setSaveError('Informe seu nome preferido.')
+      setSaveError('Informe seu nome completo.')
       setSaveMessage('')
       return
     }
     if (preferredName.length > 40) {
-      setSaveError('O nome preferido deve ter no máximo 40 caracteres.')
+      setSaveError('O nome completo deve ter no máximo 40 caracteres.')
       setSaveMessage('')
       return
     }
@@ -80,7 +80,7 @@ export default function MinhaAreaResponsavel() {
       await updateResponsiblePreferredName(preferredName)
       setProfile(current => current ? { ...current, nome_preferido: preferredName } : current)
       setName(preferredName)
-      setSaveMessage('Nome preferido atualizado com sucesso!')
+      setSaveMessage('Nome completo atualizado com sucesso!')
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Não foi possível salvar seu nome. Tente novamente.')
     } finally {
@@ -140,7 +140,7 @@ export default function MinhaAreaResponsavel() {
               </div>
 
               <form className="profile-form" onSubmit={handleSavePreferredName}>
-                <label htmlFor="responsible-name">Nome preferido</label>
+                <label htmlFor="responsible-name">Nome completo</label>
                 <input
                   id="responsible-name"
                   name="nome_preferido"
@@ -151,7 +151,7 @@ export default function MinhaAreaResponsavel() {
                     setSaveMessage('')
                     setSaveError('')
                   }}
-                  placeholder="Digite como gostaria de ser chamada"
+                  placeholder="Digite seu nome completo"
                   maxLength={40}
                   required
                   disabled={saving}
