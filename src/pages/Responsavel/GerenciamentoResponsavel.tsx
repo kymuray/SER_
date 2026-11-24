@@ -29,39 +29,45 @@ const filters: FilterStatus[] = [
 ]
 
 function parseDateParts(date: unknown) {
+  const makeDate = (year: number, month: number, day: number) => {
+    const candidate = new Date(year, month - 1, day)
+
+    return candidate.getFullYear() === year &&
+      candidate.getMonth() === month - 1 &&
+      candidate.getDate() === day
+      ? candidate
+      : null
+  }
+
   if (typeof date === 'string') {
     const value = date.trim()
 
-    const isoMatch = value.match(/(\d{4})-(\d{2})-(\d{2})/)
+    const isoMatch = value.match(/(\\d{4})-(\\d{2})-(\\d{2})/)
     if (isoMatch) {
-      const year = Number(isoMatch[1])
-      const month = Number(isoMatch[2])
-      const day = Number(isoMatch[3])
-      const candidate = new Date(year, month - 1, day)
-
-      if (
-        candidate.getFullYear() === year &&
-        candidate.getMonth() === month - 1 &&
-        candidate.getDate() === day
-      ) {
-        return candidate
-      }
+      return makeDate(
+        Number(isoMatch[1]),
+        Number(isoMatch[2]),
+        Number(isoMatch[3]),
+      )
     }
 
-    const brMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    const brMatch = value.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/)
     if (brMatch) {
-      const day = Number(brMatch[1])
-      const month = Number(brMatch[2])
-      const year = Number(brMatch[3])
-      const candidate = new Date(year, month - 1, day)
+      return makeDate(
+        Number(brMatch[3]),
+        Number(brMatch[2]),
+        Number(brMatch[1]),
+      )
+    }
 
-      if (
-        candidate.getFullYear() === year &&
-        candidate.getMonth() === month - 1 &&
-        candidate.getDate() === day
-      ) {
-        return candidate
-      }
+    // Aceita datas antigas que tenham sido gravadas como YYYYMMDD.
+    const compactMatch = value.match(/^(\\d{4})(\\d{2})(\\d{2})$/)
+    if (compactMatch) {
+      return makeDate(
+        Number(compactMatch[1]),
+        Number(compactMatch[2]),
+        Number(compactMatch[3]),
+      )
     }
 
     const candidate = new Date(value)
@@ -73,33 +79,60 @@ function parseDateParts(date: unknown) {
   }
 
   if (typeof date === 'number') {
+    // Suporta tanto timestamp em milissegundos quanto YYYYMMDD.
+    if (date >= 10000000 && date <= 99999999) {
+      const value = String(Math.trunc(date))
+      return makeDate(
+        Number(value.slice(0, 4)),
+        Number(value.slice(4, 6)),
+        Number(value.slice(6, 8)),
+      )
+    }
+
     const candidate = new Date(date)
     return Number.isNaN(candidate.getTime()) ? null : candidate
   }
 
-  if (
-    date &&
-    typeof date === 'object' &&
-    'toDate' in date &&
-    typeof (date as { toDate?: unknown }).toDate === 'function'
-  ) {
-    const candidate = (date as { toDate: () => Date }).toDate()
-    return candidate instanceof Date && !Number.isNaN(candidate.getTime())
-      ? candidate
-      : null
-  }
+  if (date && typeof date === 'object') {
+    if (
+      'toDate' in date &&
+      typeof (date as { toDate?: unknown }).toDate === 'function'
+    ) {
+      const candidate = (date as { toDate: () => Date }).toDate()
+      if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
+        return candidate
+      }
+    }
 
-  if (
-    date &&
-    typeof date === 'object' &&
-    ('seconds' in date || '_seconds' in date)
-  ) {
-    const value = date as { seconds?: unknown; _seconds?: unknown }
-    const seconds = Number(value.seconds ?? value._seconds)
+    if ('seconds' in date || '_seconds' in date) {
+      const value = date as { seconds?: unknown; _seconds?: unknown }
+      const seconds = Number(value.seconds ?? value._seconds)
 
-    if (Number.isFinite(seconds)) {
-      const candidate = new Date(seconds * 1000)
-      return Number.isNaN(candidate.getTime()) ? null : candidate
+      if (Number.isFinite(seconds)) {
+        const candidate = new Date(seconds * 1000)
+        if (!Number.isNaN(candidate.getTime())) return candidate
+      }
+    }
+
+    // Suporta objetos de data serializados como { year, month, day }.
+    if ('year' in date && 'month' in date && 'day' in date) {
+      const value = date as {
+        year?: unknown
+        month?: unknown
+        day?: unknown
+      }
+
+      const year = Number(value.year)
+      const month = Number(value.month)
+      const day = Number(value.day)
+
+      if (
+        Number.isInteger(year) &&
+        Number.isInteger(month) &&
+        Number.isInteger(day)
+      ) {
+        return makeDate(year, month, day)
+      }
     }
   }
 
